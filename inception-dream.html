@@ -277,7 +277,47 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
 .infinity-btn.visible { display:block; }
 .infinity-btn:hover { background:var(--ice-bright); letter-spacing:0.45em; }
 
-/* Notification */
+.tile-city-txt { font-family:'Courier Prime',monospace; font-size:6px; fill:rgba(74,127,165,0.5); pointer-events:none; letter-spacing:0.1em; }
+
+/* Share button */
+.share-btn {
+  display:none; width:100%; padding:11px;
+  font-family:'Courier Prime',monospace; font-size:9px; letter-spacing:0.3em;
+  text-transform:uppercase; color:var(--ice); background:none;
+  border:1px solid rgba(74,127,165,0.3); border-radius:999px;
+  cursor:pointer; transition:all 0.3s; margin-top:8px;
+}
+.share-btn.visible { display:block; }
+.share-btn:hover { border-color:var(--ice); background:rgba(74,127,165,0.08); }
+
+/* Stats screen */
+.stats-screen {
+  position:fixed; inset:0; z-index:60;
+  background:rgba(2,3,7,0.98);
+  display:flex; flex-direction:column;
+  padding:52px 24px 40px;
+  opacity:0; pointer-events:none; transition:opacity 0.5s;
+  overflow-y:auto;
+}
+.stats-screen.visible { opacity:1; pointer-events:all; }
+.stats-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; }
+.stats-title { font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:0.15em; color:var(--text); }
+.stats-close { font-family:'Courier Prime',monospace; font-size:9px; letter-spacing:0.3em; color:var(--dim); cursor:pointer; text-transform:uppercase; background:none; border:none; transition:color 0.2s; }
+.stats-close:hover { color:var(--ice); }
+.stats-count { font-family:'Courier Prime',monospace; font-size:10px; letter-spacing:0.3em; color:var(--ice); margin-bottom:24px; }
+.stats-item {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  padding:12px 0; border-bottom:1px solid rgba(74,127,165,0.08);
+  opacity:0.3; transition:opacity 0.3s;
+}
+.stats-item.done { opacity:1; }
+.stats-item-name { font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:0.1em; color:var(--text); }
+.stats-item-meta { font-family:'Courier Prime',monospace; font-size:8px; letter-spacing:0.15em; color:var(--ice-dim); text-align:right; line-height:1.8; }
+.stats-item-num { font-family:'Courier Prime',monospace; font-size:9px; color:var(--dim); margin-right:12px; margin-top:2px; }
+
+/* Stats button in header */
+.stats-btn { font-family:'Courier Prime',monospace; font-size:8px; letter-spacing:0.3em; color:var(--dim); text-transform:uppercase; cursor:pointer; transition:color 0.2s; background:none; border:none; }
+.stats-btn:hover { color:var(--ice); }
 .notification { position:fixed; top:38px; left:50%; transform:translateX(-50%) translateY(-8px); background:rgba(2,3,7,0.97); border:1px solid rgba(74,127,165,0.3); padding:12px 22px; text-align:center; opacity:0; pointer-events:none; transition:all 0.5s; z-index:500; white-space:nowrap; }
 .notification.show { opacity:1; transform:translateX(-50%) translateY(0); }
 .notif-label { font-family:'Courier Prime',monospace; font-size:10px; letter-spacing:0.4em; color:var(--ice); margin-bottom:3px; text-transform:uppercase; }
@@ -314,7 +354,10 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
 
   <div class="main-header">
     <div class="h-logo">Inception / Dream</div>
-    <div class="h-progress">Открыто <span id="openCount">1</span> / 11</div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <button class="stats-btn" onclick="showStats()">журнал</button>
+      <div class="h-progress">Открыто <span id="openCount">1</span> / 11</div>
+    </div>
   </div>
 
   <!-- PUZZLE SVG — hand-drawn layout -->
@@ -474,7 +517,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
         <polygon points="2,46 2,210 130,210 130,165 195,165 195,46" class="tile-fill"/>
         <polygon points="2,46 2,210 130,210 130,165 195,165 195,46" class="tile-border"/>
         <text x="12" y="63" class="tile-num-txt">10</text>
-        <text x="12" y="200" class="tile-label-txt">Reward Dream</text>
+        <text x="12" y="200" class="tile-label-txt"><text class="tile-city-txt" dy="12" dx="0"> </text>Reward Dream</text>
       </g>
 
       <!-- 4: Sunshine Dream — center tall -->
@@ -483,7 +526,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
         <polygon points="133,82 133,270 308,270 308,82" class="tile-fill"/>
         <polygon points="133,82 133,270 308,270 308,82" class="tile-border"/>
         <text x="145" y="99" class="tile-num-txt">05</text>
-        <text x="145" y="260" class="tile-label-txt">Sunshine Dream</text>
+        <text x="145" y="260" class="tile-label-txt"><text class="tile-city-txt" dy="12" dx="0"> </text>Sunshine Dream</text>
       </g>
 
       <!-- 2: Still Dream — top right Г -->
@@ -492,7 +535,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
         <polygon points="310,46 310,125 260,125 260,165 398,165 398,46" class="tile-fill"/>
         <polygon points="310,46 310,125 260,125 260,165 398,165 398,46" class="tile-border"/>
         <text x="320" y="63" class="tile-num-txt">02</text>
-        <text x="270" y="155" class="tile-label-txt">Still Dream</text>
+        <text x="270" y="155" class="tile-label-txt"><text class="tile-city-txt" dy="12" dx="0"> </text>Still Dream</text>
       </g>
 
       <!-- 9: Reverie Dream — right upper -->
@@ -501,7 +544,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
         <polygon points="260,125 260,270 398,270 398,125" class="tile-fill"/>
         <polygon points="260,125 260,270 398,270 398,125" class="tile-border"/>
         <text x="270" y="142" class="tile-num-txt">09</text>
-        <text x="262" y="260" class="tile-label-txt">Reverie Dream</text>
+        <text x="262" y="260" class="tile-label-txt"><text class="tile-city-txt" dy="12" dx="0"> </text>Reverie Dream</text>
       </g>
 
       <!-- 6: Africa Dream — left tall Г -->
@@ -510,7 +553,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
         <polygon points="2,212 2,435 82,435 82,385 130,385 130,212" class="tile-fill"/>
         <polygon points="2,212 2,435 82,435 82,385 130,385 130,212" class="tile-border"/>
         <text x="12" y="229" class="tile-num-txt">07</text>
-        <text x="8" y="425" class="tile-label-txt">Africa Dream</text>
+        <text x="8" y="425" class="tile-label-txt"><text class="tile-city-txt" dy="12" dx="0"> </text>Africa Dream</text>
       </g>
 
       <!-- 1: Quiet Dream — center big — UNLOCKED -->
@@ -519,7 +562,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
         <polygon points="84,272 84,520 310,520 310,272" class="tile-fill"/>
         <polygon points="84,272 84,520 310,520 310,272" class="tile-border"/>
         <text x="95" y="289" class="tile-num-txt">01</text>
-        <text x="95" y="510" class="tile-label-txt">Quiet Dream</text>
+        <text x="95" y="510" class="tile-label-txt"><text class="tile-city-txt" dy="12" dx="0"> </text>Quiet Dream</text>
       </g>
 
       <!-- 7: Full Moon Dream — right tall -->
@@ -528,7 +571,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
         <polygon points="312,272 312,520 398,520 398,272" class="tile-fill"/>
         <polygon points="312,272 312,520 398,520 398,272" class="tile-border"/>
         <text x="320" y="289" class="tile-num-txt">06</text>
-        <text x="316" y="510" class="tile-label-txt" font-size="7px">Full Moon</text>
+        <text x="316" y="510" class="tile-label-txt" font-size="7px"><text class="tile-city-txt" dy="12" dx="0"> </text>Full Moon</text>
       </g>
 
       <!-- 8: Airport Dream — center bottom -->
@@ -537,7 +580,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
         <polygon points="84,522 84,628 232,628 232,522" class="tile-fill"/>
         <polygon points="84,522 84,628 232,628 232,522" class="tile-border"/>
         <text x="94" y="539" class="tile-num-txt">08</text>
-        <text x="90" y="618" class="tile-label-txt">Airport Dream</text>
+        <text x="90" y="618" class="tile-label-txt"><text class="tile-city-txt" dy="12" dx="0"> </text>Airport Dream</text>
       </g>
 
       <!-- 5: Sleep Dream — right bottom -->
@@ -546,7 +589,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
         <polygon points="234,522 234,645 398,645 398,522" class="tile-fill"/>
         <polygon points="234,522 234,645 398,645 398,522" class="tile-border"/>
         <text x="244" y="539" class="tile-num-txt">04</text>
-        <text x="240" y="635" class="tile-label-txt">Sleep Dream</text>
+        <text x="240" y="635" class="tile-label-txt"><text class="tile-city-txt" dy="12" dx="0"> </text>Sleep Dream</text>
       </g>
 
       <!-- 3: Action Dream — bottom left Г -->
@@ -555,7 +598,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
         <polygon points="2,437 2,758 232,758 232,630 84,630 84,437" class="tile-fill"/>
         <polygon points="2,437 2,758 232,758 232,630 84,630 84,437" class="tile-border"/>
         <text x="12" y="454" class="tile-num-txt">03</text>
-        <text x="12" y="748" class="tile-label-txt">Action Dream</text>
+        <text x="12" y="748" class="tile-label-txt"><text class="tile-city-txt" dy="12" dx="0"> </text>Action Dream</text>
       </g>
 
       <!-- 11: Limbo — bottom right -->
@@ -564,7 +607,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
         <polygon points="234,647 234,758 398,758 398,647" class="tile-fill"/>
         <polygon points="234,647 234,758 398,758 398,647" class="tile-border"/>
         <text x="244" y="664" class="tile-num-txt">11</text>
-        <text x="258" y="748" class="tile-label-txt">Limbo</text>
+        <text x="258" y="748" class="tile-label-txt"><text class="tile-city-txt" dy="12" dx="0"> </text>Limbo</text>
       </g>
 
       <!-- Gap filler top (above tiles) -->
@@ -607,6 +650,17 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
   <div class="sheet-story" id="sheetStory"></div>
   <div class="sheet-hint" id="sheetHint"></div>
   <button class="infinity-btn" id="infinityBtn" onclick="enterInfinity()">погрузиться в infinity mode</button>
+  <button class="share-btn" id="shareBtn" onclick="shareDream(window._currentSheetDream)">поделиться этим сном ↗</button>
+</div>
+
+<!-- STATS SCREEN -->
+<div class="stats-screen" id="statsScreen">
+  <div class="stats-header">
+    <div class="stats-title">Журнал снов</div>
+    <button class="stats-close" onclick="hideStats()">закрыть ×</button>
+  </div>
+  <div class="stats-count" id="statsCount"></div>
+  <div id="statsList"></div>
 </div>
 
 <!-- TUTORIAL -->
@@ -705,7 +759,7 @@ const dreams = [
 ];
 
 let unlocked=[true,...new Array(10).fill(false)];
-let dreamMeta = new Array(11).fill(null); // {date, city} per dream
+let dreamMeta = new Array(11).fill(null);
 let listening=false, audioCtx=null, analyser=null, source=null, stream=null, dataArray=null;
 let prevVol=0, stillF=0, loudF=0, sleepF=0;
 let impulseCount=0, impulseTimer=null, impulseDetected=false;
@@ -714,6 +768,22 @@ let musicNodes=[], musicGain=null;
 let fxNodes={ rev:null, del:null, filt:null, out:null };
 let activeDreamMusic=0;
 let _homeLat=null,_homeLon=null,userLat=null,userLon=null;
+
+// ============ SAVE / LOAD ============
+function saveProgress(){
+  try{
+    localStorage.setItem('dream_unlocked', JSON.stringify(unlocked));
+    localStorage.setItem('dream_meta', JSON.stringify(dreamMeta));
+  }catch(e){}
+}
+function loadProgress(){
+  try{
+    const u=localStorage.getItem('dream_unlocked');
+    const m=localStorage.getItem('dream_meta');
+    if(u) unlocked=JSON.parse(u);
+    if(m) dreamMeta=JSON.parse(m);
+  }catch(e){}
+}
 
 // ============ TUTORIAL ============
 function tutNext(step){
@@ -756,6 +826,7 @@ function playUnlockSound(){
 
 // ============ SCREENS ============
 function startExperience(){
+  loadProgress();
   const p=document.getElementById('preloader');
   p.classList.add('fade-out');
   setTimeout(()=>{ p.style.display='none'; showMain(); },1400);
@@ -828,6 +899,12 @@ function updateUI(){
   unlocked.forEach((u,i)=>{
     const t=document.getElementById('tile'+i); if(!t) return;
     t.classList.toggle('unlocked',u); t.classList.toggle('locked',!u);
+    // Геометка на тайле
+    const cityEl=t.querySelector('.tile-city-txt');
+    if(cityEl && u && dreamMeta[i]){
+      const parts=dreamMeta[i].split('·');
+      cityEl.textContent=parts[1]?parts[1].trim():'';
+    }
   });
 }
 
@@ -870,7 +947,10 @@ function tileClick(idx){
   if(u){ infBtn.classList.add('visible'); }
   else { infBtn.classList.remove('visible'); }
 
-  // Запоминаем текущий сон для Infinity
+  const shareBtn=document.getElementById('shareBtn');
+  if(u){ shareBtn.classList.add('visible'); }
+  else { shareBtn.classList.remove('visible'); }
+
   window._currentSheetDream=idx;
 
   document.getElementById('sheet').classList.add('open');
@@ -1171,7 +1251,19 @@ function unlockDream(i){
   animateUnlock(i);
   showNotif(dreams[i].name);
   updateUI();
+  saveProgress();
   if(listening&&audioCtx){ setupFX(i); switchMusic(i); }
+}
+
+function shareDream(idx){
+  const d=dreams[idx];
+  const meta=dreamMeta[idx]||'';
+  const text=`Я открыла "${d.name}" в приложении Dream\n${meta}\n🎧 kloppiklo.github.io/dream/inception-dream.html`;
+  if(navigator.share){
+    navigator.share({ title:'Dream — '+d.name, text });
+  } else {
+    navigator.clipboard.writeText(text).then(()=>showNotif('скопировано!'));
+  }
 }
 
 function enterInfinity(){
@@ -1203,6 +1295,30 @@ function showProgress(label, pct){
 function hideProgress(){
   document.getElementById('progressWrap').classList.remove('visible');
   document.getElementById('progressFill').style.width='0%';
+}
+
+function showStats(){
+  const count=unlocked.filter(Boolean).length;
+  document.getElementById('statsCount').textContent=`${count} из 11 снов открыто`;
+  const list=document.getElementById('statsList');
+  list.innerHTML='';
+  dreams.forEach((d,i)=>{
+    const done=unlocked[i];
+    const div=document.createElement('div');
+    div.className='stats-item'+(done?' done':'');
+    const meta=done&&dreamMeta[i]?dreamMeta[i]:'не открыт';
+    div.innerHTML=`
+      <div style="display:flex;align-items:flex-start">
+        <div class="stats-item-num">${d.num}</div>
+        <div class="stats-item-name">${d.name}</div>
+      </div>
+      <div class="stats-item-meta">${meta}</div>`;
+    list.appendChild(div);
+  });
+  document.getElementById('statsScreen').classList.add('visible');
+}
+function hideStats(){
+  document.getElementById('statsScreen').classList.remove('visible');
 }
 
 function flashFX(){ const f=document.getElementById('flash'); f.classList.add('active'); setTimeout(()=>f.classList.remove('active'),150); }
