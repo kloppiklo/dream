@@ -178,10 +178,14 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
 .tutorial {
   position:fixed; inset:0; z-index:200;
   pointer-events:all;
-  background:rgba(0,0,0,0.55);
+  background:rgba(0,0,0,0.6);
   transition:opacity 0.8s ease;
+  display:none;
 }
+.tutorial.active { display:flex; flex-direction:column; align-items:center; justify-content:center; }
 .tutorial.hidden { opacity:0; pointer-events:none; }
+.tutorial-step { display:none; flex-direction:column; align-items:center; gap:8px; max-width:260px; }
+.tutorial-step.active { display:flex; }
 .tutorial-step {
   position:absolute; display:none;
   flex-direction:column; align-items:center;
@@ -292,7 +296,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
 
 /* Stats screen */
 .stats-screen {
-  position:fixed; inset:0; z-index:60;
+  position:fixed; inset:0; z-index:250;
   background:rgba(2,3,7,0.98);
   display:flex; flex-direction:column;
   padding:52px 24px 40px;
@@ -665,29 +669,28 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
 
 <!-- TUTORIAL -->
 <div class="tutorial" id="tutorial">
-  <!-- Step 1: карта -->
-  <div class="tutorial-step active" id="tut1" style="top:35%;left:50%;transform:translate(-50%,-50%)">
+  <!-- Step 1 -->
+  <div class="tutorial-step active" id="tut1">
     <div class="tut-bubble">
       <div class="tut-title">Карта снов</div>
       <div class="tut-text">Это твоя карта. Каждый тайл — отдельный сон. Тёмные — закрыты. Светлые — открыты.</div>
       <button class="tut-next" onclick="tutNext(2)">далее →</button>
     </div>
   </div>
-  <!-- Step 2: микрофон -->
-  <div class="tutorial-step" id="tut2" style="bottom:140px;left:50%;transform:translateX(-50%)">
-    <div class="tut-bubble arrow-down">
+  <!-- Step 2 -->
+  <div class="tutorial-step" id="tut2">
+    <div class="tut-bubble">
       <div class="tut-title">Микрофон</div>
-      <div class="tut-text">Нажми чтобы начать слушать. Сны открываются через звук, движение и время.</div>
+      <div class="tut-text">Нажми на кнопку микрофона внизу чтобы начать слушать. Сны открываются через звук, движение и время.</div>
       <button class="tut-next" onclick="tutNext(3)">далее →</button>
     </div>
-    <div class="tut-arrow">↓</div>
   </div>
-  <!-- Step 3: тайл -->
-  <div class="tutorial-step" id="tut3" style="top:62%;left:30%;transform:translate(-50%,-50%)">
-    <div class="tut-bubble arrow-left">
+  <!-- Step 3 -->
+  <div class="tutorial-step" id="tut3">
+    <div class="tut-bubble">
       <div class="tut-title">Нажми на тайл</div>
-      <div class="tut-text">Нажми на любой тайл — узнаешь как открыть этот сон.</div>
-      <button class="tut-next" onclick="tutDone()">начать</button>
+      <div class="tut-text">Нажми на любой тайл — узнаешь как открыть этот сон. Удачи.</div>
+      <button class="tut-next" onclick="tutDone()">начать ↓</button>
     </div>
   </div>
   <button class="tut-skip" onclick="tutDone()">пропустить</button>
@@ -794,7 +797,7 @@ function tutNext(step){
 function tutDone(){
   const t=document.getElementById('tutorial');
   t.classList.add('hidden');
-  setTimeout(()=>t.style.display='none',800);
+  setTimeout(()=>{ t.classList.remove('active'); t.style.display='none'; t.classList.remove('hidden'); },800);
   try{ localStorage.setItem('dreamTutDone','1'); }catch(e){}
 }
 
@@ -883,9 +886,11 @@ function showMain(){
   document.getElementById('mainScreen').classList.add('visible');
   updateUI();
   if(!localStorage.getItem('dreamTutDone')){
-    setTimeout(()=>document.getElementById('tutorial').style.display='block',600);
-  } else {
-    document.getElementById('tutorial').style.display='none';
+    setTimeout(()=>{
+      const t=document.getElementById('tutorial');
+      t.style.display='';
+      t.classList.add('active');
+    },600);
   }
   if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>{
     userLat=p.coords.latitude; userLon=p.coords.longitude;
