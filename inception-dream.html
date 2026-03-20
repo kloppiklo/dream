@@ -138,19 +138,104 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
 .mic-btn {
   position:absolute; bottom:76px; left:50%; transform:translateX(-50%);
   z-index:20; width:54px; height:54px; border-radius:50%;
-  background:rgba(3,5,10,0.92); border:1px solid var(--border);
+  background:rgba(3,5,10,0.92); border:1px solid rgba(74,127,165,0.25);
   display:flex; align-items:center; justify-content:center;
   cursor:pointer; transition:all 0.3s;
+  animation:mic-idle 3s ease-in-out infinite;
 }
-.mic-btn svg { width:18px; height:18px; stroke:var(--dim); fill:none; stroke-width:1.3; transition:stroke 0.3s; }
+.mic-btn svg { width:18px; height:18px; stroke:var(--ice); fill:none; stroke-width:1.3; transition:stroke 0.3s; }
 .mic-btn.listening { border-color:rgba(74,127,165,0.6); animation:mic-breathe 2s ease-in-out infinite; }
-.mic-btn.listening svg { stroke:var(--ice); }
+.mic-btn.listening svg { stroke:var(--ice-bright); }
+@keyframes mic-idle {
+  0%,100%{box-shadow:0 0 0px rgba(74,127,165,0); border-color:rgba(74,127,165,0.2)}
+  50%{box-shadow:0 0 16px rgba(74,127,165,0.35); border-color:rgba(74,127,165,0.5)}
+}
 @keyframes mic-breathe {
   0%,100%{box-shadow:0 0 14px rgba(74,127,165,0.2)}
   50%{box-shadow:0 0 32px rgba(74,127,165,0.5),0 0 55px rgba(74,127,165,0.15)}
 }
 
-/* Visualizer */
+/* Locked tile subtle flicker */
+@keyframes tile-flicker {
+  0%,90%,100%{opacity:1} 92%{opacity:0.85} 95%{opacity:0.95} 97%{opacity:0.8}
+}
+.tile-g.locked { animation:tile-flicker 8s ease-in-out infinite; }
+.tile-g.locked:nth-child(2){animation-delay:-1.2s}
+.tile-g.locked:nth-child(3){animation-delay:-3.1s}
+.tile-g.locked:nth-child(4){animation-delay:-2.0s}
+.tile-g.locked:nth-child(5){animation-delay:-4.5s}
+.tile-g.locked:nth-child(6){animation-delay:-0.8s}
+.tile-g.locked:nth-child(7){animation-delay:-5.2s}
+.tile-g.locked:nth-child(8){animation-delay:-1.8s}
+.tile-g.locked:nth-child(9){animation-delay:-3.7s}
+.tile-g.locked:nth-child(10){animation-delay:-6.1s}
+
+/* Tutorial overlay */
+.tutorial {
+  position:fixed; inset:0; z-index:200;
+  pointer-events:all;
+  transition:opacity 0.8s ease;
+}
+.tutorial.hidden { opacity:0; pointer-events:none; }
+.tutorial-step {
+  position:absolute; display:none;
+  flex-direction:column; align-items:center;
+}
+.tutorial-step.active { display:flex; }
+.tut-bubble {
+  background:rgba(2,4,10,0.95);
+  border:1px solid rgba(74,127,165,0.4);
+  padding:14px 18px; max-width:200px; text-align:center;
+  position:relative;
+}
+.tut-bubble::after {
+  content:''; position:absolute;
+  border:6px solid transparent;
+}
+.tut-bubble.arrow-down::after {
+  bottom:-12px; left:50%; transform:translateX(-50%);
+  border-top-color:rgba(74,127,165,0.4);
+}
+.tut-bubble.arrow-up::after {
+  top:-12px; left:50%; transform:translateX(-50%);
+  border-bottom-color:rgba(74,127,165,0.4);
+}
+.tut-bubble.arrow-left::after {
+  right:-12px; top:50%; transform:translateY(-50%);
+  border-left-color:rgba(74,127,165,0.4);
+}
+.tut-title { font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:0.15em; color:var(--text); margin-bottom:6px; }
+.tut-text { font-family:'Spectral',serif; font-size:12px; color:rgba(184,205,216,0.7); line-height:1.6; font-style:italic; }
+.tut-arrow {
+  font-family:'Courier Prime',monospace; font-size:20px;
+  color:rgba(74,127,165,0.7); margin:6px 0;
+  animation:arrow-bounce 1s ease-in-out infinite;
+}
+@keyframes arrow-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+.tut-skip {
+  position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+  font-family:'Courier Prime',monospace; font-size:9px; letter-spacing:0.3em;
+  color:var(--dim); text-transform:uppercase; cursor:pointer;
+  transition:color 0.2s; border:none; background:none; padding:10px 20px;
+}
+.tut-skip:hover { color:var(--ice); }
+.tut-next {
+  margin-top:10px; font-family:'Courier Prime',monospace; font-size:9px;
+  letter-spacing:0.3em; text-transform:uppercase;
+  color:var(--bg); background:var(--ice); border:none;
+  padding:8px 18px; border-radius:999px; cursor:pointer; transition:all 0.2s;
+}
+.tut-next:hover { background:var(--ice-bright); }
+
+/* Progress bar */
+.progress-bar-wrap {
+  position:fixed; bottom:52px; left:50%; transform:translateX(-50%);
+  width:120px; z-index:25; opacity:0; transition:opacity 0.4s;
+}
+.progress-bar-wrap.visible { opacity:1; }
+.progress-bar-label { font-family:'Courier Prime',monospace; font-size:7px; letter-spacing:0.3em; color:var(--ice-dim); text-transform:uppercase; text-align:center; margin-bottom:4px; }
+.progress-bar-track { height:1px; background:rgba(74,127,165,0.15); border-radius:1px; }
+.progress-bar-fill { height:100%; background:var(--ice); border-radius:1px; width:0%; transition:width 0.3s ease; }
 .visualizer { position:absolute; bottom:140px; left:50%; transform:translateX(-50%); display:flex; gap:2px; align-items:flex-end; height:20px; opacity:0; transition:opacity 0.5s; z-index:20; }
 .visualizer.visible { opacity:1; }
 .bar { width:2px; background:var(--ice); border-radius:2px; min-height:2px; transition:height 0.07s; opacity:0.45; }
@@ -495,6 +580,10 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
     </svg>
   </div>
   <div class="status-txt" id="statusTxt">нажми чтобы слушать</div>
+  <div class="progress-bar-wrap" id="progressWrap">
+    <div class="progress-bar-label" id="progressLabel"></div>
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+  </div>
   <div class="visualizer" id="visualizer">
     <div class="bar" id="b0"></div><div class="bar" id="b1"></div><div class="bar" id="b2"></div>
     <div class="bar" id="b3"></div><div class="bar" id="b4"></div><div class="bar" id="b5"></div>
@@ -515,7 +604,36 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
   <button class="infinity-btn" id="infinityBtn" onclick="enterInfinity()">погрузиться в infinity mode</button>
 </div>
 
-<!-- NOTIFICATION -->
+<!-- TUTORIAL -->
+<div class="tutorial" id="tutorial">
+  <!-- Step 1: карта -->
+  <div class="tutorial-step active" id="tut1" style="top:35%;left:50%;transform:translate(-50%,-50%)">
+    <div class="tut-bubble">
+      <div class="tut-title">Карта снов</div>
+      <div class="tut-text">Это твоя карта. Каждый тайл — отдельный сон. Тёмные — закрыты. Светлые — открыты.</div>
+      <button class="tut-next" onclick="tutNext(2)">далее →</button>
+    </div>
+  </div>
+  <!-- Step 2: микрофон -->
+  <div class="tutorial-step" id="tut2" style="bottom:140px;left:50%;transform:translateX(-50%)">
+    <div class="tut-bubble arrow-down">
+      <div class="tut-title">Микрофон</div>
+      <div class="tut-text">Нажми чтобы начать слушать. Сны открываются через звук, движение и время.</div>
+      <button class="tut-next" onclick="tutNext(3)">далее →</button>
+    </div>
+    <div class="tut-arrow">↓</div>
+  </div>
+  <!-- Step 3: тайл -->
+  <div class="tutorial-step" id="tut3" style="top:62%;left:30%;transform:translate(-50%,-50%)">
+    <div class="tut-bubble arrow-left">
+      <div class="tut-title">Нажми на тайл</div>
+      <div class="tut-text">Нажми на любой тайл — узнаешь как открыть этот сон.</div>
+      <button class="tut-next" onclick="tutDone()">начать</button>
+    </div>
+  </div>
+  <button class="tut-skip" onclick="tutDone()">пропустить</button>
+</div>
+
 <div class="notification" id="notif">
   <div class="notif-label">сон открыт</div>
   <div class="notif-name" id="notifName"></div>
@@ -537,7 +655,7 @@ const dreams = [
   { name:'Action Dream',   num:'03',
     desc:'движение рождает новые миры',
     story:'Каждый звук становится архитектурой. Твои шаги — ритм. Твой голос — мелодия. В этом сне хаос превращается в музыку, которую невозможно написать заранее.',
-    hint:'Издай громкий звук', condition:'sound',
+    hint:'Активно двигай телефон — иди, тряси, двигайся', condition:'sound',
     sound:{ drone:40, chord:[80,100,120], scale:[0,2,5,7,9], tempo:8000, atmo:'pulse',  boom:5000  } },
   { name:'Sleep Dream',    num:'04',
     desc:'граница между мирами исчезает',
@@ -557,7 +675,7 @@ const dreams = [
   { name:'Africa Dream',   num:'07',
     desc:'ты далеко — совсем в другом мире',
     story:'Чем дальше от дома — тем глубже сон. Этот мир открывается только тем, кто решается уйти. Расстояние — это не пространство. Это состояние.',
-    hint:'Уйди далеко от привычного места', condition:'location',
+    hint:'Уйди от привычного места на 8+ км', condition:'location',
     sound:{ drone:25, chord:[50,75,100],  scale:[0,2,5,7,10],tempo:5000, atmo:'distant',boom:9000  } },
   { name:'Airport Dream',  num:'08',
     desc:'между мирами — ни здесь ни там',
@@ -567,7 +685,7 @@ const dreams = [
   { name:'Reverie Dream',  num:'09',
     desc:'мечта без ограничений',
     story:'Время — единственное, что нужно этому сну. Чем дольше ты здесь — тем реальнее становится нереальное. Оставайся. Слушай. Позволь звукам перестроить мир вокруг тебя.',
-    hint:'Оставайся в приложении 5 минут', condition:'time5min',
+    hint:'Оставайся в приложении 2 минуты', condition:'time5min',
     sound:{ drone:28, chord:[56,84,112],  scale:[0,2,4,7,11],tempo:0,    atmo:'float',  boom:10000 } },
   { name:'Reward Dream',   num:'10',
     desc:'ты прошла дальше всех',
@@ -592,6 +710,45 @@ let fxNodes={ rev:null, del:null, filt:null, out:null };
 let activeDreamMusic=0;
 let _homeLat=null,_homeLon=null,userLat=null,userLon=null;
 
+// ============ TUTORIAL ============
+function tutNext(step){
+  document.querySelectorAll('.tutorial-step').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById('tut'+step);
+  if(el) el.classList.add('active');
+}
+function tutDone(){
+  const t=document.getElementById('tutorial');
+  t.classList.add('hidden');
+  setTimeout(()=>t.style.display='none',800);
+  try{ localStorage.setItem('dreamTutDone','1'); }catch(e){}
+}
+
+// ============ UNLOCK SOUND ============
+function playUnlockSound(){
+  if(!audioCtx) return;
+  const now=audioCtx.currentTime;
+  // Low boom
+  const osc=audioCtx.createOscillator(); osc.type='sine';
+  osc.frequency.setValueAtTime(60,now);
+  osc.frequency.linearRampToValueAtTime(30,now+1.5);
+  const g=audioCtx.createGain(); g.gain.setValueAtTime(0,now);
+  g.gain.linearRampToValueAtTime(0.4,now+0.1);
+  g.gain.linearRampToValueAtTime(0,now+1.5);
+  // High shimmer
+  const osc2=audioCtx.createOscillator(); osc2.type='sine';
+  osc2.frequency.setValueAtTime(880,now);
+  osc2.frequency.linearRampToValueAtTime(440,now+0.8);
+  const g2=audioCtx.createGain(); g2.gain.setValueAtTime(0,now);
+  g2.gain.linearRampToValueAtTime(0.15,now+0.05);
+  g2.gain.linearRampToValueAtTime(0,now+0.8);
+  const rev=audioCtx.createConvolver(); rev.buffer=mkRev(audioCtx,3,2);
+  osc.connect(g); g.connect(rev);
+  osc2.connect(g2); g2.connect(rev);
+  rev.connect(audioCtx.destination);
+  osc.start(now); osc.stop(now+2);
+  osc2.start(now); osc2.stop(now+1);
+}
+
 // ============ SCREENS ============
 function startExperience(){
   const p=document.getElementById('preloader');
@@ -601,6 +758,12 @@ function startExperience(){
 function showMain(){
   document.getElementById('mainScreen').classList.add('visible');
   updateUI();
+  // Показываем туториал только первый раз
+  if(!localStorage.getItem('dreamTutDone')){
+    setTimeout(()=>document.getElementById('tutorial').style.display='block',600);
+  } else {
+    document.getElementById('tutorial').style.display='none';
+  }
   if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>{
     userLat=p.coords.latitude; userLon=p.coords.longitude;
     if(!_homeLat){_homeLat=userLat;_homeLon=userLon;}
@@ -617,6 +780,7 @@ function updateUI(){
 function animateUnlock(i){
   const t=document.getElementById('tile'+i); if(!t) return;
   flashFX();
+  playUnlockSound();
   t.classList.add('unlocking');
   setTimeout(()=>t.classList.remove('unlocking'),1400);
 }
@@ -874,13 +1038,27 @@ function checkUnlocks(vol){
   if(!sessionStart||Date.now()-sessionStart<10000) return;
   const delta=vol-prevVol;
   if(delta>0.12&&!impulseDetected){ impulseDetected=true; flashFX(); handleImpulse(); setTimeout(()=>{impulseDetected=false;},200); }
-  if(!unlocked[1]){ if(motionDelta>2) window._hadMotion=true; if(window._hadMotion&&motionDelta<1.5){stillF++;if(stillF>300)unlockDream(1);}else if(motionDelta>=1.5)stillF=0; }
-  if(!unlocked[2]){ if(vol>0.08){loudF++;if(loudF>15){unlockDream(2);loudF=0;}}else loudF=Math.max(0,loudF-1); }
-  if(!unlocked[3]){ if(vol<0.01&&motionDelta<1.5){sleepF++;if(sleepF>600)unlockDream(3);}else sleepF=0; }
+  if(!unlocked[1]){
+    if(motionDelta>2) window._hadMotion=true;
+    if(window._hadMotion&&motionDelta<1.5){
+      stillF++;
+      showProgress('still dream', Math.min(100, (stillF/300)*100));
+      if(stillF>300){ unlockDream(1); hideProgress(); }
+    } else if(motionDelta>=1.5){ stillF=0; hideProgress(); }
+  }
+  // Action Dream — активное движение акселерометром (трясёшь/идёшь быстро)
+  if(!unlocked[2]){ if(motionDelta>8){loudF++;if(loudF>45){unlockDream(2);loudF=0;hideProgress();}}else loudF=Math.max(0,loudF-1); }
+  if(!unlocked[3]){
+    if(vol<0.01&&motionDelta<1.5){
+      sleepF++;
+      showProgress('sleep dream', Math.min(100, (sleepF/600)*100));
+      if(sleepF>600){ unlockDream(3); hideProgress(); }
+    } else { sleepF=0; if(!(!unlocked[1]&&window._hadMotion&&motionDelta<1.5)) hideProgress(); }
+  }
   if(!unlocked[4]){ const h=new Date().getHours(); if(h>=11&&h<17) unlockDream(4); }
   if(!unlocked[5]){ const h=new Date().getHours(); if(h>=22||h<4) unlockDream(5); }
-  if(!unlocked[6]&&userLat!==null&&_homeLat!==null){ if(geoDist(userLat,userLon,_homeLat,_homeLon)>50) unlockDream(6); }
-  if(!unlocked[8]&&sessionStart){ if(Date.now()-sessionStart>300000) unlockDream(8); }
+  if(!unlocked[6]&&userLat!==null&&_homeLat!==null){ if(geoDist(userLat,userLon,_homeLat,_homeLon)>8) unlockDream(6); }
+  if(!unlocked[8]&&sessionStart){ if(Date.now()-sessionStart>120000) unlockDream(8); }
   if(!unlocked[9]){ if(unlocked.slice(0,9).every(Boolean)) unlockDream(9); }
   if(unlocked[9]&&!unlocked[10]) setTimeout(()=>unlockDream(10),2000);
 }
@@ -937,6 +1115,17 @@ function animateUnlock(i){
   // Animate tile
   t.classList.add('unlocking');
   setTimeout(()=>t.classList.remove('unlocking'),1300);
+}
+
+function showProgress(label, pct){
+  const wrap=document.getElementById('progressWrap');
+  document.getElementById('progressLabel').textContent=label;
+  document.getElementById('progressFill').style.width=pct+'%';
+  wrap.classList.add('visible');
+}
+function hideProgress(){
+  document.getElementById('progressWrap').classList.remove('visible');
+  document.getElementById('progressFill').style.width='0%';
 }
 
 function flashFX(){ const f=document.getElementById('flash'); f.classList.add('active'); setTimeout(()=>f.classList.remove('active'),150); }
