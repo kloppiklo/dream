@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dream / Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Courier+Prime&family=Spectral:ital,wght@0,300;1,300&display=swap');
+
+:root {
+  --bg: #03050b;
+  --deep: #020307;
+  --ice: #4a7fa5;
+  --ice-bright: #7ab8d8;
+  --ice-dim: #1a3348;
+  --text: #b8cdd8;
+  --dim: #2a4058;
+  --border: #0c1a28;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Courier Prime',monospace; min-height:100vh; padding:40px 24px 60px; }
+
+.grain {
+  position:fixed; inset:-50%; width:200%; height:200%;
+  opacity:0.025; pointer-events:none; z-index:999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 0.4s steps(1) infinite;
+}
+@keyframes grain { 0%,100%{transform:translate(0,0)} 20%{transform:translate(3%,2%)} 40%{transform:translate(-1%,4%)} 60%{transform:translate(1%,3%)} 80%{transform:translate(3%,-3%)} }
+
+header {
+  display:flex; justify-content:space-between; align-items:flex-end;
+  margin-bottom:48px; padding-bottom:20px;
+  border-bottom:1px solid var(--border);
+}
+.logo { font-family:'Bebas Neue',sans-serif; font-size:36px; letter-spacing:0.15em; color:var(--text); }
+.logo span { color:var(--ice); }
+.subtitle { font-size:9px; letter-spacing:0.4em; color:var(--dim); text-transform:uppercase; }
+.refresh-btn { font-size:9px; letter-spacing:0.3em; color:var(--dim); text-transform:uppercase; background:none; border:1px solid var(--border); padding:8px 16px; cursor:pointer; transition:all 0.2s; border-radius:999px; }
+.refresh-btn:hover { color:var(--ice); border-color:var(--ice); }
+
+/* Stats grid */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom:40px; }
+.stat-card { background:rgba(10,18,32,0.6); border:1px solid var(--border); padding:20px 18px; }
+.stat-num { font-family:'Bebas Neue',sans-serif; font-size:48px; color:var(--ice-bright); line-height:1; margin-bottom:4px; }
+.stat-label { font-size:8px; letter-spacing:0.35em; color:var(--dim); text-transform:uppercase; }
+
+/* Section title */
+.section-title { font-size:9px; letter-spacing:0.45em; color:var(--ice-dim); text-transform:uppercase; margin-bottom:16px; margin-top:36px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+
+/* Dream bars */
+.dream-bar-wrap { margin-bottom:10px; }
+.dream-bar-header { display:flex; justify-content:space-between; margin-bottom:5px; }
+.dream-bar-name { font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:0.1em; color:var(--text); }
+.dream-bar-count { font-size:9px; color:var(--ice); }
+.dream-bar-track { height:2px; background:rgba(74,127,165,0.1); border-radius:1px; }
+.dream-bar-fill { height:100%; background:var(--ice); border-radius:1px; transition:width 1s ease; }
+
+/* Recent table */
+.recent-table { width:100%; border-collapse:collapse; }
+.recent-table th { font-size:8px; letter-spacing:0.35em; color:var(--dim); text-transform:uppercase; text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--border); }
+.recent-table td { font-size:11px; color:var(--text); padding:10px 12px 10px 0; border-bottom:1px solid rgba(74,127,165,0.06); vertical-align:top; }
+.recent-table td.dream { font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:0.08em; }
+.recent-table td.city { color:var(--dim); font-size:10px; }
+.recent-table td.date { color:var(--ice-dim); font-size:9px; letter-spacing:0.1em; }
+.recent-table tr:hover td { color:var(--ice-bright); }
+
+/* Map dots */
+.map-wrap { position:relative; height:200px; background:rgba(4,8,16,0.8); border:1px solid var(--border); margin-bottom:8px; overflow:hidden; }
+.map-dot { position:absolute; width:6px; height:6px; border-radius:50%; background:var(--ice); transform:translate(-50%,-50%); transition:all 0.3s; }
+.map-dot:hover { background:var(--ice-bright); transform:translate(-50%,-50%) scale(1.5); }
+.map-dot.visit { background:rgba(74,127,165,0.3); width:4px; height:4px; }
+.map-grid-h { position:absolute; left:0; right:0; height:1px; background:rgba(74,127,165,0.04); }
+.map-grid-v { position:absolute; top:0; bottom:0; width:1px; background:rgba(74,127,165,0.04); }
+.map-label { position:absolute; font-size:7px; color:rgba(74,127,165,0.25); letter-spacing:0.2em; }
+
+/* Loading */
+.loading { text-align:center; padding:60px; font-size:9px; letter-spacing:0.4em; color:var(--dim); text-transform:uppercase; }
+.loading span { display:inline-block; animation:blink 1.2s ease-in-out infinite; }
+.loading span:nth-child(2){animation-delay:0.2s}
+.loading span:nth-child(3){animation-delay:0.4s}
+@keyframes blink { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+.error { text-align:center; padding:40px; font-size:11px; color:#cc3333; font-style:italic; }
+
+.last-updated { font-size:8px; letter-spacing:0.25em; color:var(--dim); text-align:right; margin-top:8px; }
+
+/* Limbo special */
+.limbo-row td { color:rgba(106,74,138,0.8) !important; }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <div>
+    <div class="logo">Dream <span>/</span> Dashboard</div>
+    <div class="subtitle">inception · dream experience · аналитика</div>
+  </div>
+  <button class="refresh-btn" onclick="loadData()">↻ обновить</button>
+</header>
+
+<div id="content">
+  <div class="loading"><span>·</span><span>·</span><span>·</span></div>
+</div>
+
+<script>
+const SB_URL = 'https://hgzzpeyveyqygdmkcsjv.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnenpwZXl2ZXlxeWdkbWtjc2p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNDAzMDcsImV4cCI6MjA4OTYxNjMwN30.cSOTQPV6lYO8bNNCwEn5IGUyv4XXtBRQiUkdSyWdYYc';
+
+const DREAM_ORDER = [
+  'Quiet Dream','Still Dream','Action Dream','Sleep Dream',
+  'Sunshine Dream','Full Moon Dream','Africa Dream','Airport Dream',
+  'Reverie Dream','Reward Dream','Limbo'
+];
+
+async function fetchAll(){
+  const r = await fetch(`${SB_URL}/rest/v1/dreams?select=*&order=created_at.desc&limit=500`, {
+    headers:{ 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+  });
+  return await r.json();
+}
+
+function latLonToXY(lat, lon, w, h){
+  const x = ((lon + 180) / 360) * w;
+  const y = ((90 - lat) / 180) * h;
+  return { x, y };
+}
+
+async function loadData(){
+  document.getElementById('content').innerHTML = '<div class="loading"><span>·</span><span>·</span><span>·</span></div>';
+  
+  let data;
+  try { data = await fetchAll(); }
+  catch(e){ document.getElementById('content').innerHTML = '<div class="error">Не удалось загрузить данные. Проверь подключение.</div>'; return; }
+
+  if(!Array.isArray(data)){ document.getElementById('content').innerHTML = '<div class="error">Ошибка API: '+JSON.stringify(data)+'</div>'; return; }
+
+  const visits = data.filter(d=>d.dream_name==='__visit__');
+  const dreams = data.filter(d=>d.dream_name!=='__visit__');
+
+  // Counts per dream
+  const counts = {};
+  DREAM_ORDER.forEach(n=>counts[n]=0);
+  dreams.forEach(d=>{ if(counts[d.dream_name]!==undefined) counts[d.dream_name]++; });
+  const maxCount = Math.max(...Object.values(counts), 1);
+
+  // Unique cities
+  const cities = [...new Set(dreams.map(d=>d.city).filter(Boolean))];
+
+  // First dream date
+  const firstDate = data.length > 0 ? new Date(data[data.length-1].created_at).toLocaleDateString('ru-RU') : '—';
+
+  const now = new Date().toLocaleString('ru-RU');
+
+  // Build HTML
+  let html = '';
+
+  // Top stats
+  html += `<div class="stats-grid">
+    <div class="stat-card"><div class="stat-num">${visits.length}</div><div class="stat-label">посетителей</div></div>
+    <div class="stat-card"><div class="stat-num">${dreams.length}</div><div class="stat-label">снов открыто</div></div>
+    <div class="stat-card"><div class="stat-num">${cities.length}</div><div class="stat-label">городов</div></div>
+    <div class="stat-card"><div class="stat-num">${counts['Limbo']||0}</div><div class="stat-label">достигли лимбо</div></div>
+  </div>`;
+
+  // Map
+  html += `<div class="section-title">география снов</div>`;
+  html += `<div class="map-wrap" id="mapWrap">
+    <div class="map-grid-h" style="top:50%"></div>
+    <div class="map-grid-v" style="left:50%"></div>
+    <div class="map-grid-v" style="left:25%"></div>
+    <div class="map-grid-v" style="left:75%"></div>
+    <div class="map-grid-h" style="top:25%"></div>
+    <div class="map-grid-h" style="top:75%"></div>
+    <div class="map-label" style="bottom:4px;left:4px">-180°</div>
+    <div class="map-label" style="bottom:4px;right:4px">180°</div>
+    <div class="map-label" style="top:4px;left:50%;transform:translateX(-50%)">0°</div>
+  </div>`;
+
+  // Dream bars
+  html += `<div class="section-title">популярность снов</div>`;
+  DREAM_ORDER.forEach(name => {
+    const c = counts[name]||0;
+    const pct = maxCount > 0 ? (c/maxCount)*100 : 0;
+    const isLimbo = name === 'Limbo';
+    html += `<div class="dream-bar-wrap">
+      <div class="dream-bar-header">
+        <span class="dream-bar-name" style="${isLimbo?'color:rgba(160,128,200,0.8)':''}">${name}</span>
+        <span class="dream-bar-count">${c}</span>
+      </div>
+      <div class="dream-bar-track">
+        <div class="dream-bar-fill" style="width:${pct}%;${isLimbo?'background:rgba(106,74,138,0.7)':''}"></div>
+      </div>
+    </div>`;
+  });
+
+  // Recent activity
+  html += `<div class="section-title">последние события</div>`;
+  if(dreams.length === 0){
+    html += `<div style="font-size:11px;color:var(--dim);font-style:italic;padding:20px 0">Пока нет данных. Открой первый сон!</div>`;
+  } else {
+    html += `<table class="recent-table">
+      <thead><tr><th>сон</th><th>город</th><th>дата</th></tr></thead>
+      <tbody>`;
+    dreams.slice(0,30).forEach(d=>{
+      const date = new Date(d.created_at).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      const isLimbo = d.dream_name==='Limbo';
+      html += `<tr class="${isLimbo?'limbo-row':''}">
+        <td class="dream">${d.dream_name}</td>
+        <td class="city">${d.city||'—'}</td>
+        <td class="date">${date}</td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+
+  html += `<div class="last-updated">обновлено: ${now} · всего записей: ${data.length}</div>`;
+
+  document.getElementById('content').innerHTML = html;
+
+  // Draw map dots
+  const mapEl = document.getElementById('mapWrap');
+  if(mapEl){
+    const w = mapEl.offsetWidth;
+    const h = mapEl.offsetHeight;
+
+    // Visit dots
+    visits.filter(d=>d.lat&&d.lon).forEach(d=>{
+      const {x,y} = latLonToXY(d.lat, d.lon, w, h);
+      const dot = document.createElement('div');
+      dot.className='map-dot visit';
+      dot.style.left=x+'px'; dot.style.top=y+'px';
+      dot.title='визит';
+      mapEl.appendChild(dot);
+    });
+
+    // Dream dots
+    dreams.filter(d=>d.lat&&d.lon).forEach(d=>{
+      const {x,y} = latLonToXY(d.lat, d.lon, w, h);
+      const dot = document.createElement('div');
+      dot.className='map-dot';
+      if(d.dream_name==='Limbo') dot.style.background='rgba(160,120,200,0.9)';
+      dot.style.left=x+'px'; dot.style.top=y+'px';
+      dot.title=`${d.dream_name}${d.city?' · '+d.city:''}`;
+      mapEl.appendChild(dot);
+    });
+  }
+}
+
+loadData();
+// Авто-обновление каждые 30 секунд
+setInterval(loadData, 30000);
+</script>
+</body>
+</html>
