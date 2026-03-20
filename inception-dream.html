@@ -772,6 +772,44 @@ let fxNodes={ rev:null, del:null, filt:null, out:null };
 let activeDreamMusic=0;
 let _homeLat=null,_homeLon=null,userLat=null,userLon=null;
 
+// ============ SUPABASE ============
+const SB_URL = 'https://hgzzpeyveyqygdmkcsjv.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnenpwZXl2ZXlxeWdkbWtjc2p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNDAzMDcsImV4cCI6MjA4OTYxNjMwN30.cSOTQPV6lYO8bNNCwEn5IGUyv4XXtBRQiUkdSyWdYYc';
+
+async function sbInsert(dream_name, city, lat, lon){
+  try{
+    await fetch(`${SB_URL}/rest/v1/dreams`, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ dream_name, city, lat: lat||null, lon: lon||null })
+    });
+  }catch(e){}
+}
+
+async function sbGetDreamers(){
+  try{
+    const r = await fetch(`${SB_URL}/rest/v1/dreams?select=dream_name,city,lat,lon,created_at&order=created_at.desc&limit=50`, {
+      headers:{ 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    return await r.json();
+  }catch(e){ return []; }
+}
+
+// Записываем визит при первом запуске
+function trackVisit(){
+  try{
+    if(!localStorage.getItem('dream_visit_tracked')){
+      sbInsert('__visit__', '', userLat, userLon);
+      localStorage.setItem('dream_visit_tracked','1');
+    }
+  }catch(e){}
+}
+
 // ============ SAVE / LOAD ============
 function saveProgress(){
   try{
@@ -895,6 +933,7 @@ function showMain(){
   if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>{
     userLat=p.coords.latitude; userLon=p.coords.longitude;
     if(!_homeLat){_homeLat=userLat;_homeLon=userLon;}
+    trackVisit();
   });
   // Запускаем ambient после жеста пользователя (уже есть — нажатие кнопки прелоадера)
   startAmbientMap();
@@ -1241,22 +1280,29 @@ function unlockDream(i){
   const now=new Date();
   const dateStr=now.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
   if(userLat!==null){
-    // Обратное геокодирование через nominatim
     fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLat}&lon=${userLon}&format=json&accept-language=ru`)
       .then(r=>r.json())
       .then(data=>{
         const city=data.address.city||data.address.town||data.address.village||data.address.county||'неизвестное место';
         dreamMeta[i]=`открыт ${dateStr} · ${city}`;
+        sbInsert(dreams[i].name, city, userLat, userLon);
+        saveProgress();
+        updateUI();
       })
-      .catch(()=>{ dreamMeta[i]=`открыт ${dateStr}`; });
+      .catch(()=>{
+        dreamMeta[i]=`открыт ${dateStr}`;
+        sbInsert(dreams[i].name, '', userLat, userLon);
+        saveProgress();
+      });
   } else {
     dreamMeta[i]=`открыт ${dateStr}`;
+    sbInsert(dreams[i].name, '', null, null);
+    saveProgress();
   }
 
   animateUnlock(i);
   showNotif(dreams[i].name);
   updateUI();
-  saveProgress();
   if(listening&&audioCtx){ setupFX(i); switchMusic(i); }
 }
 
@@ -1302,24 +1348,48 @@ function hideProgress(){
   document.getElementById('progressFill').style.width='0%';
 }
 
-function showStats(){
+async function showStats(){
   const count=unlocked.filter(Boolean).length;
   document.getElementById('statsCount').textContent=`${count} из 11 снов открыто`;
   const list=document.getElementById('statsList');
   list.innerHTML='';
+
+  // Мои сны
+  const myTitle=document.createElement('div');
+  myTitle.style.cssText='font-family:"Courier Prime",monospace;font-size:8px;letter-spacing:0.4em;color:var(--ice-dim);text-transform:uppercase;margin-bottom:12px;margin-top:4px;';
+  myTitle.textContent='мои сны';
+  list.appendChild(myTitle);
+
   dreams.forEach((d,i)=>{
     const done=unlocked[i];
     const div=document.createElement('div');
     div.className='stats-item'+(done?' done':'');
     const meta=done&&dreamMeta[i]?dreamMeta[i]:'не открыт';
-    div.innerHTML=`
-      <div style="display:flex;align-items:flex-start">
-        <div class="stats-item-num">${d.num}</div>
-        <div class="stats-item-name">${d.name}</div>
-      </div>
-      <div class="stats-item-meta">${meta}</div>`;
+    div.innerHTML=`<div style="display:flex;align-items:flex-start"><div class="stats-item-num">${d.num}</div><div class="stats-item-name">${d.name}</div></div><div class="stats-item-meta">${meta}</div>`;
     list.appendChild(div);
   });
+
+  // Dreamers — другие пользователи
+  const dreamersData = await sbGetDreamers();
+  const realDreams = dreamersData.filter(d=>d.dream_name !== '__visit__');
+  const visits = dreamersData.filter(d=>d.dream_name === '__visit__').length;
+
+  if(realDreams.length > 0){
+    const sep=document.createElement('div');
+    sep.style.cssText='font-family:"Courier Prime",monospace;font-size:8px;letter-spacing:0.4em;color:var(--ice-dim);text-transform:uppercase;margin:20px 0 12px;';
+    sep.textContent=`другие сновидцы · ${visits} посетителей`;
+    list.appendChild(sep);
+
+    realDreams.forEach(d=>{
+      const div=document.createElement('div');
+      div.className='stats-item done';
+      const date=new Date(d.created_at).toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+      const loc=d.city||'неизвестно';
+      div.innerHTML=`<div style="display:flex;align-items:flex-start"><div class="stats-item-num">✦</div><div class="stats-item-name" style="font-size:13px">${d.dream_name}</div></div><div class="stats-item-meta">${date} · ${loc}</div>`;
+      list.appendChild(div);
+    });
+  }
+
   document.getElementById('statsScreen').classList.add('visible');
 }
 function hideStats(){
