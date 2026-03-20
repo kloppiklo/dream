@@ -755,10 +755,58 @@ function startExperience(){
   p.classList.add('fade-out');
   setTimeout(()=>{ p.style.display='none'; showMain(); },1400);
 }
+// Ambient music vars for main screen (before mic)
+let ambientCtx=null, ambientNodes=[];
+
+function startAmbientMap(){
+  if(ambientCtx) return;
+  try{
+    ambientCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const gain=ambientCtx.createGain(); gain.gain.setValueAtTime(0,ambientCtx.currentTime); gain.gain.linearRampToValueAtTime(0.04,ambientCtx.currentTime+4);
+    const rev=ambientCtx.createConvolver(); rev.buffer=mkRevCtx(ambientCtx,6,1.5);
+    const filt=ambientCtx.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=600;
+    gain.connect(filt); filt.connect(rev); rev.connect(ambientCtx.destination);
+    // Deep drone
+    const dr=ambientCtx.createOscillator(); dr.type='sine'; dr.frequency.value=27.5;
+    const dg=ambientCtx.createGain(); dg.gain.value=0.5;
+    const lfo=ambientCtx.createOscillator(); lfo.frequency.value=0.04;
+    const lg=ambientCtx.createGain(); lg.gain.value=0.6;
+    lfo.connect(lg); lg.connect(dr.frequency); dr.connect(dg); dg.connect(gain);
+    dr.start(); lfo.start(); ambientNodes.push(dr,lfo,gain);
+    // Chord
+    [55,82].forEach((f,i)=>{
+      const o=ambientCtx.createOscillator(); o.type='triangle'; o.frequency.value=f;
+      const og=ambientCtx.createGain(); og.gain.value=0.06/(i+1);
+      o.connect(og); og.connect(gain); o.start(); ambientNodes.push(o);
+    });
+  }catch(e){}
+}
+
+function stopAmbientMap(){
+  ambientNodes.forEach(n=>{try{n.stop()}catch(e){} try{n.disconnect()}catch(e){}});
+  ambientNodes=[];
+  if(ambientCtx){ambientCtx.close();ambientCtx=null;}
+}
+
+function mkRevCtx(ctx,dur,decay){
+  const sr=ctx.sampleRate,len=sr*dur,b=ctx.createBuffer(2,len,sr);
+  for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay);}
+  return b;
+}
+
+// Click sound
+function playClickSound(){
+  const ctx=audioCtx||ambientCtx; if(!ctx) return;
+  const now=ctx.currentTime;
+  const o=ctx.createOscillator(); o.type='sine'; o.frequency.setValueAtTime(440,now); o.frequency.linearRampToValueAtTime(220,now+0.12);
+  const g=ctx.createGain(); g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(0.08,now+0.01); g.gain.linearRampToValueAtTime(0,now+0.12);
+  o.connect(g); g.connect(ctx.destination); o.start(now); o.stop(now+0.15);
+}
+
 function showMain(){
   document.getElementById('mainScreen').classList.add('visible');
   updateUI();
-  // Показываем туториал только первый раз
+  startAmbientMap();
   if(!localStorage.getItem('dreamTutDone')){
     setTimeout(()=>document.getElementById('tutorial').style.display='block',600);
   } else {
@@ -788,6 +836,7 @@ function animateUnlock(i){
 // ============ TILE CLICK ============
 function tileClick(idx){
   if(idx===null) return;
+  playClickSound();
   const d=dreams[idx]; const u=unlocked[idx];
   document.getElementById('sheetNum').textContent=d.num;
   document.getElementById('sheetName').textContent=d.name;
@@ -842,6 +891,7 @@ async function startListening(){
     dataArray=new Uint8Array(analyser.frequencyBinCount);
     source=audioCtx.createMediaStreamSource(stream);
     setupFX(0); startMusic(0); activeDreamMusic=0;
+    stopAmbientMap();
     listening=true; sessionStart=Date.now();
     document.getElementById('micBtn').classList.add('listening');
     document.getElementById('visualizer').classList.add('visible');
@@ -1051,8 +1101,8 @@ function checkUnlocks(vol){
   if(!unlocked[3]){
     if(vol<0.01&&motionDelta<1.5){
       sleepF++;
-      showProgress('sleep dream', Math.min(100, (sleepF/600)*100));
-      if(sleepF>600){ unlockDream(3); hideProgress(); }
+      showProgress('sleep dream', Math.min(100, (sleepF/3600)*100));
+      if(sleepF>3600){ unlockDream(3); hideProgress(); }
     } else { sleepF=0; if(!(!unlocked[1]&&window._hadMotion&&motionDelta<1.5)) hideProgress(); }
   }
   if(!unlocked[4]){ const h=new Date().getHours(); if(h>=11&&h<17) unlockDream(4); }
