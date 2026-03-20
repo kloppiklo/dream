@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dream">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCI+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSIzOCIgZmlsbD0iIzAzMDcxMCIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjcwIiBmaWxsPSJub25lIiBzdHJva2U9IiM0YTdmYTUiIHN0cm9rZS13aWR0aD0iMC4zIiBvcGFjaXR5PSIwLjE1Ii8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzRhN2ZhNSIgc3Ryb2tlLXdpZHRoPSIwLjQiIG9wYWNpdHk9IjAuMjIiLz48Y2lyY2xlIGN4PSI5MCIgY3k9IjkwIiByPSI0MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGE3ZmE1IiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC4zNSIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjI4IiBmaWxsPSJub25lIiBzdHJva2U9IiM0YTdmYTUiIHN0cm9rZS13aWR0aD0iMC45IiBvcGFjaXR5PSIwLjU1Ii8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iMTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzRhN2ZhNSIgc3Ryb2tlLXdpZHRoPSIxLjIiIG9wYWNpdHk9IjAuOCIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjQiIGZpbGw9IiM3YWI4ZDgiIG9wYWNpdHk9IjAuOSIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjEuNSIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC45Ii8+PHRleHQgeD0iOTAiIHk9IjE1OCIgZm9udC1mYW1pbHk9InNlcmlmIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNGE3ZmE1IiBvcGFjaXR5PSIwLjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSI2Ij5EUkVBTTwvdGV4dD48L3N2Zz4=">
 <title>DREAM</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&family=Courier+Prime&display=swap');
@@ -174,6 +178,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
 .tutorial {
   position:fixed; inset:0; z-index:200;
   pointer-events:all;
+  background:rgba(0,0,0,0.55);
   transition:opacity 0.8s ease;
 }
 .tutorial.hidden { opacity:0; pointer-events:none; }
@@ -806,7 +811,6 @@ function playClickSound(){
 function showMain(){
   document.getElementById('mainScreen').classList.add('visible');
   updateUI();
-  startAmbientMap();
   if(!localStorage.getItem('dreamTutDone')){
     setTimeout(()=>document.getElementById('tutorial').style.display='block',600);
   } else {
@@ -816,6 +820,8 @@ function showMain(){
     userLat=p.coords.latitude; userLon=p.coords.longitude;
     if(!_homeLat){_homeLat=userLat;_homeLon=userLon;}
   });
+  // Запускаем ambient после жеста пользователя (уже есть — нажатие кнопки прелоадера)
+  startAmbientMap();
 }
 function updateUI(){
   document.getElementById('openCount').textContent=unlocked.filter(Boolean).length;
@@ -885,6 +891,8 @@ async function toggleListening(){
 }
 async function startListening(){
   try{
+    // Запрашиваем разрешение акселерометра
+    requestMotionPermission();
     stream=await navigator.mediaDevices.getUserMedia({audio:true});
     audioCtx=new(window.AudioContext||window.webkitAudioContext)();
     analyser=audioCtx.createAnalyser(); analyser.fftSize=256; analyser.smoothingTimeConstant=0.8;
@@ -919,7 +927,7 @@ function setupFX(depthIdx){
   const dD=audioCtx.createGain(); dD.gain.value=0.7;
   fxNodes.rev=audioCtx.createConvolver(); fxNodes.rev.buffer=mkRev(audioCtx,3+rev*5,2+rev*3);
   const rW=audioCtx.createGain(); rW.gain.value=rev*0.5;
-  fxNodes.out=audioCtx.createGain(); fxNodes.out.gain.value=1.2;
+  fxNodes.out=audioCtx.createGain(); fxNodes.out.gain.value=0.7; // снижено чтобы не было фидбэка
   source.connect(analyser); source.connect(fxNodes.filt);
   fxNodes.filt.connect(dD); dD.connect(fxNodes.out);
   fxNodes.filt.connect(fxNodes.del); fxNodes.del.connect(dFb); dFb.connect(fxNodes.del); fxNodes.del.connect(dW); dW.connect(fxNodes.out);
@@ -953,7 +961,7 @@ function startMusic(idx){ startMusicForDream(idx); }
 function startMusicForDream(idx){
   const d=dreams[idx].sound;
   const ctx=audioCtx;
-  musicGain=ctx.createGain(); musicGain.gain.setValueAtTime(0,ctx.currentTime); musicGain.gain.linearRampToValueAtTime(d.atmo==='void'?0.12:0.08,ctx.currentTime+2.5);
+  musicGain=ctx.createGain(); musicGain.gain.setValueAtTime(0,ctx.currentTime); musicGain.gain.linearRampToValueAtTime(d.atmo==='void'?0.18:0.14,ctx.currentTime+2.5);
   const mr=ctx.createConvolver(); mr.buffer=mkRev(ctx,6+idx*0.5,1.5);
   const mf=ctx.createBiquadFilter(); mf.type='lowpass'; mf.frequency.value=idx===10?500:800;
   musicGain.connect(mf); mf.connect(mr); mr.connect(ctx.destination);
@@ -1080,7 +1088,21 @@ function getVol(){ if(!analyser||!dataArray) return 0; analyser.getByteTimeDomai
 function getFreq(){ if(!analyser||!dataArray) return new Uint8Array(128).fill(0); const f=new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(f); return f; }
 
 // ============ MOTION ============
-window.addEventListener('devicemotion',e=>{ const a=e.accelerationIncludingGravity; if(a) motionDelta=Math.abs(a.x||0)+Math.abs(a.y||0)+Math.abs(a.z||0); });
+function requestMotionPermission(){
+  if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function'){
+    DeviceMotionEvent.requestPermission().then(state=>{
+      if(state==='granted'){
+        window.addEventListener('devicemotion', handleMotion);
+      }
+    }).catch(()=>{});
+  } else {
+    // Android / older iOS — просто подписываемся
+    window.addEventListener('devicemotion', handleMotion);
+  }
+}
+function handleMotion(e){
+  const a=e.accelerationIncludingGravity; if(a) motionDelta=Math.abs(a.x||0)+Math.abs(a.y||0)+Math.abs(a.z||0);
+}
 function geoDist(a,b,c,d){ const R=6371,dL=(c-a)*Math.PI/180,dO=(d-b)*Math.PI/180,x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dO/2)**2; return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
 
 // ============ UNLOCKS ============
