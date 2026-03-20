@@ -269,7 +269,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
 .sheet-status.open-s { color:var(--ice); }
 .sheet-meta { font-family:'Courier Prime',monospace; font-size:8px; letter-spacing:0.2em; color:var(--ice-dim); margin-bottom:10px; opacity:0.8; }
 .sheet-story { font-size:13px; font-weight:300; color:rgba(184,205,216,0.6); letter-spacing:0.03em; line-height:1.75; margin-bottom:10px; font-family:'Spectral',serif; font-style:italic; }
-.sheet-hint { font-family:'Courier Prime',monospace; font-size:9px; letter-spacing:0.16em; color:rgba(122,184,216,0.75); line-height:1.6; border-left:1px solid rgba(74,127,165,0.5); padding-left:10px; margin-bottom:14px; }
+.sheet-hint { font-family:'Courier Prime',monospace; font-size:9px; letter-spacing:0.16em; color:rgba(122,184,216,0.75); line-height:1.6; border-left:1px solid rgba(74,127,165,0.5); padding-left:10px; margin-bottom:14px; display:none; }
 .infinity-btn {
   display:none; width:100%; padding:13px;
   font-family:'Courier Prime',monospace; font-size:9px; letter-spacing:0.35em;
@@ -357,7 +357,11 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
   </div>
 
   <div class="main-header">
-    <div class="h-logo">Inception / Dream</div>
+    <div class="h-logo" id="logoBtn" 
+      oncontextmenu="return false"
+      ontouchstart="startLogoHold()" 
+      ontouchend="cancelLogoHold()"
+      ontouchmove="cancelLogoHold()">Inception / Dream</div>
     <div style="display:flex;align-items:center;gap:16px">
       <button class="stats-btn" onclick="showStats()">журнал</button>
       <div class="h-progress">Открыто <span id="openCount">1</span> / 11</div>
@@ -810,6 +814,24 @@ function trackVisit(){
   }catch(e){}
 }
 
+// ============ SECRET RESET ============
+let logoHoldTimer = null;
+function startLogoHold(){
+  logoHoldTimer = setTimeout(()=>{
+    if(confirm('Сбросить весь прогресс?')){
+      localStorage.clear();
+      unlocked = [true,...new Array(10).fill(false)];
+      dreamMeta = new Array(11).fill(null);
+      updateUI();
+      showNotif('прогресс сброшен');
+    }
+  }, 2000);
+}
+function cancelLogoHold(){
+  clearTimeout(logoHoldTimer);
+  logoHoldTimer = null;
+}
+
 // ============ SAVE / LOAD ============
 function saveProgress(){
   try{
@@ -983,8 +1005,13 @@ function tileClick(idx){
 
   // Подсказка как открыть
   const hint=document.getElementById('sheetHint');
-  if(d.hint&&!u){ hint.textContent='как открыть: '+d.hint; hint.style.display='block'; }
-  else hint.style.display='none';
+  if(d.hint&&!u){
+    hint.textContent='как открыть: '+d.hint;
+    hint.style.display='block';
+  } else {
+    hint.textContent='';
+    hint.style.display='none';
+  }
 
   // Кнопка Infinity
   const infBtn=document.getElementById('infinityBtn');
