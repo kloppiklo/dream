@@ -67,9 +67,14 @@ body {
   font-family:'Courier Prime',monospace; font-size:10px; letter-spacing:0.45em;
   text-transform:uppercase; color:var(--bg); background:var(--ice);
   border:none; padding:15px 38px; cursor:pointer;
-  transition:all 0.35s ease; opacity:0; animation:fade-up 1s ease 1.8s forwards;
+  border-radius: 999px;
+  transition:all 0.35s ease; opacity:0; animation:fade-up 1s ease 1.8s forwards, btn-pulse 2.5s ease 2.8s infinite;
 }
-.pre-btn:hover { background:var(--ice-bright); box-shadow:0 0 30px rgba(74,127,165,0.4); letter-spacing:0.55em; }
+@keyframes btn-pulse {
+  0%,100%{ box-shadow: 0 0 0px rgba(74,127,165,0); }
+  50%{ box-shadow: 0 0 22px rgba(74,127,165,0.65), 0 0 44px rgba(74,127,165,0.2); }
+}
+.pre-btn:hover { background:var(--ice-bright); box-shadow:0 0 30px rgba(74,127,165,0.5) !important; letter-spacing:0.55em; }
 .pre-btn-line { width:1px; height:56px; background:linear-gradient(to bottom, rgba(74,127,165,0.4), transparent); margin-top:36px; opacity:0; animation:fade-up 1s ease 2s forwards; }
 @keyframes fade-up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
@@ -93,12 +98,14 @@ body {
 .sector { cursor:pointer; transition:all 0.6s; }
 .sector.locked { cursor:not-allowed; }
 .sector polygon { transition:fill 0.8s, filter 0.8s; }
-.sector.locked polygon { fill:#0a1220; }
-.sector.unlocked polygon { fill:#152238; filter:drop-shadow(0 0 8px rgba(74,127,165,0.2)); }
-.sector.unlocked:hover polygon { fill:#1e3a55; filter:drop-shadow(0 0 16px rgba(74,127,165,0.4)); }
+.sector.locked polygon { fill:rgba(2,4,10,0.82); }
+.sector.unlocked polygon { fill:rgba(74,127,165,0.08); }
+.sector.unlocked:hover polygon { fill:rgba(74,127,165,0.18); }
+.sec-overlay { }
 .sector-label { font-family:'Courier Prime',monospace; font-size:7.5px; letter-spacing:0.2em; text-transform:uppercase; fill:transparent; transition:fill 0.8s; pointer-events:none; }
-.sector.unlocked .sector-label { fill:rgba(74,127,165,0.75); }
-.sector-num { font-family:'Courier Prime',monospace; font-size:7px; fill:#1e3550; pointer-events:none; }
+.sector.unlocked .sector-label { fill:rgba(122,184,216,0.85); }
+.sector-num { font-family:'Courier Prime',monospace; font-size:7px; fill:rgba(30,53,80,0.6); pointer-events:none; }
+.sector.unlocked .sector-num { fill:rgba(74,127,165,0.4); }
 
 .map-hint { position:absolute; bottom:32px; left:50%; transform:translateX(-50%); font-family:'Courier Prime',monospace; font-size:9px; letter-spacing:0.35em; color:var(--dim); text-transform:uppercase; animation:pulse-hint 3s ease-in-out infinite; }
 @keyframes pulse-hint { 0%,100%{opacity:0.4} 50%{opacity:0.9} }
@@ -160,7 +167,7 @@ body {
 .visualizer.visible { opacity:1; }
 .bar { width:3px; background:var(--ice); border-radius:2px; min-height:2px; transition:height 0.08s; opacity:0.5; }
 
-.exit-btn { position:absolute; bottom:32px; left:50%; transform:translateX(-50%); font-family:'Courier Prime',monospace; font-size:9px; letter-spacing:0.4em; text-transform:uppercase; color:var(--dim); background:none; border:1px solid var(--sector-border); padding:10px 24px; cursor:pointer; transition:all 0.3s; z-index:10; }
+.exit-btn { position:absolute; bottom:32px; left:50%; transform:translateX(-50%); font-family:'Courier Prime',monospace; font-size:9px; letter-spacing:0.4em; text-transform:uppercase; color:var(--dim); background:none; border:1px solid var(--sector-border); padding:10px 24px; cursor:pointer; border-radius:999px; transition:all 0.3s; z-index:10; }
 .exit-btn:hover { color:var(--ice); border-color:var(--ice); box-shadow:0 0 16px rgba(74,127,165,0.15); }
 
 .notification { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) translateY(16px); background:rgba(2,4,8,0.96); border:1px solid rgba(74,127,165,0.3); padding:18px 30px; text-align:center; opacity:0; pointer-events:none; transition:all 0.6s; z-index:500; max-width:260px; }
@@ -196,74 +203,310 @@ body.limbo { --ice:#6a4a8a; --ice-bright:#9a7ab8; --ice-dim:#2a1a3a; --text:#888
   </div>
   <div class="map-svg-wrap">
     <svg id="mapSvg" viewBox="0 0 400 760" preserveAspectRatio="xMidYMid slice">
-      <g class="sector unlocked" id="sec0" onclick="enterDream(0)">
-        <polygon points="40,55 210,38 228,185 75,205 28,138"/>
-        <text class="sector-num" x="102" y="108">01</text>
-        <text class="sector-label" x="72" y="130">Quiet Dream</text>
+      <defs>
+        <!-- Clip paths for each sector -->
+        <clipPath id="clip0"><polygon points="38,52 212,35 230,188 72,208 25,140"/></clipPath>
+        <clipPath id="clip1"><polygon points="230,35 375,44 365,165 235,185 212,35"/></clipPath>
+        <clipPath id="clip2"><polygon points="25,140 72,208 85,322 14,334 4,215"/></clipPath>
+        <clipPath id="clip3"><polygon points="72,208 235,185 250,308 95,328 85,322"/></clipPath>
+        <clipPath id="clip4"><polygon points="235,185 365,165 382,288 258,308 250,308"/></clipPath>
+        <clipPath id="clip5"><polygon points="14,334 95,328 105,438 24,452 4,388"/></clipPath>
+        <clipPath id="clip6"><polygon points="95,328 258,308 268,432 108,448 105,438"/></clipPath>
+        <clipPath id="clip7"><polygon points="258,308 382,288 392,412 268,432 268,432"/></clipPath>
+        <clipPath id="clip8"><polygon points="24,452 108,448 118,562 44,580 14,515"/></clipPath>
+        <clipPath id="clip9"><polygon points="108,448 268,432 278,552 128,568 118,562"/></clipPath>
+        <clipPath id="clip10"><polygon points="44,580 278,552 298,672 62,682 34,628"/></clipPath>
+
+        <!-- City building pattern -->
+        <pattern id="cityPattern" x="0" y="0" width="400" height="760" patternUnits="userSpaceOnUse">
+          <!-- Dark base -->
+          <rect width="400" height="760" fill="#030710"/>
+          <!-- Main roads -->
+          <line x1="0" y1="120" x2="400" y2="108" stroke="#0a1828" stroke-width="6"/>
+          <line x1="0" y1="240" x2="400" y2="252" stroke="#0a1828" stroke-width="5"/>
+          <line x1="0" y1="365" x2="400" y2="358" stroke="#0a1828" stroke-width="6"/>
+          <line x1="0" y1="488" x2="400" y2="478" stroke="#0a1828" stroke-width="5"/>
+          <line x1="0" y1="610" x2="400" y2="618" stroke="#0a1828" stroke-width="6"/>
+          <line x1="85" y1="0" x2="78" y2="760" stroke="#0a1828" stroke-width="5"/>
+          <line x1="185" y1="0" x2="192" y2="760" stroke="#0a1828" stroke-width="6"/>
+          <line x1="280" y1="0" x2="275" y2="760" stroke="#0a1828" stroke-width="5"/>
+          <line x1="360" y1="0" x2="365" y2="760" stroke="#0a1828" stroke-width="4"/>
+          <!-- Secondary roads -->
+          <line x1="0" y1="65" x2="400" y2="60" stroke="#070f1e" stroke-width="3"/>
+          <line x1="0" y1="178" x2="400" y2="182" stroke="#070f1e" stroke-width="2.5"/>
+          <line x1="0" y1="305" x2="400" y2="298" stroke="#070f1e" stroke-width="3"/>
+          <line x1="0" y1="428" x2="400" y2="422" stroke="#070f1e" stroke-width="2.5"/>
+          <line x1="0" y1="548" x2="400" y2="554" stroke="#070f1e" stroke-width="3"/>
+          <line x1="0" y1="678" x2="400" y2="672" stroke="#070f1e" stroke-width="2.5"/>
+          <line x1="35" y1="0" x2="30" y2="760" stroke="#070f1e" stroke-width="2.5"/>
+          <line x1="135" y1="0" x2="140" y2="760" stroke="#070f1e" stroke-width="3"/>
+          <line x1="232" y1="0" x2="238" y2="760" stroke="#070f1e" stroke-width="2.5"/>
+          <line x1="322" y1="0" x2="318" y2="760" stroke="#070f1e" stroke-width="3"/>
+
+          <!-- Buildings block 1 (top left) -->
+          <rect x="38" y="20" width="34" height="28" fill="#081422" rx="1"/>
+          <rect x="42" y="22" width="14" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="42" y="32" width="9" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="55" y="25" width="10" height="15" fill="#0a1828" rx="0.5"/>
+          <rect x="10" y="30" width="20" height="22" fill="#071220" rx="1"/>
+          <rect x="12" y="32" width="7" height="5" fill="#0c1c2e" rx="0.5"/>
+          <rect x="12" y="40" width="7" height="5" fill="#0c1c2e" rx="0.5"/>
+          <rect x="22" y="35" width="6" height="12" fill="#091625" rx="0.5"/>
+
+          <!-- Buildings block 2 (top right) -->
+          <rect x="240" y="15" width="40" height="32" fill="#081422" rx="1"/>
+          <rect x="244" y="18" width="12" height="10" fill="#0c1c2e" rx="0.5"/>
+          <rect x="244" y="30" width="12" height="8" fill="#0a1828" rx="0.5"/>
+          <rect x="260" y="20" width="16" height="24" fill="#091625" rx="0.5"/>
+          <rect x="290" y="22" width="28" height="20" fill="#071220" rx="1"/>
+          <rect x="294" y="25" width="8" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="305" y="25" width="8" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="335" y="18" width="22" height="35" fill="#081422" rx="1"/>
+          <rect x="338" y="22" width="7" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="338" y="30" width="7" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="338" y="38" width="7" height="6" fill="#0c1c2e" rx="0.5"/>
+
+          <!-- Buildings block 3 (left strip) -->
+          <rect x="5" y="145" width="22" height="40" fill="#081422" rx="1"/>
+          <rect x="8" y="148" width="7" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="8" y="158" width="7" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="8" y="168" width="7" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="18" y="150" width="8" height="20" fill="#091625" rx="0.5"/>
+
+          <!-- Buildings block 4 (center) -->
+          <rect x="100" y="130" width="55" height="38" fill="#071220" rx="1"/>
+          <rect x="104" y="134" width="14" height="10" fill="#0c1c2e" rx="0.5"/>
+          <rect x="104" y="148" width="14" height="10" fill="#0a1828" rx="0.5"/>
+          <rect x="122" y="134" width="10" height="28" fill="#091625" rx="0.5"/>
+          <rect x="136" y="138" width="14" height="22" fill="#081422" rx="0.5"/>
+          <rect x="140" y="142" width="6" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="140" y="152" width="6" height="6" fill="#0c1c2e" rx="0.5"/>
+
+          <!-- Buildings block 5 (right center) -->
+          <rect x="295" y="125" width="35" height="48" fill="#081422" rx="1"/>
+          <rect x="299" y="128" width="10" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="299" y="140" width="10" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="299" y="152" width="10" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="313" y="130" width="12" height="35" fill="#071220" rx="0.5"/>
+          <rect x="316" y="135" width="5" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="316" y="145" width="5" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="316" y="155" width="5" height="6" fill="#0c1c2e" rx="0.5"/>
+
+          <!-- Buildings block 6 (mid left) -->
+          <rect x="5" y="258" width="18" height="35" fill="#081422" rx="1"/>
+          <rect x="8" y="262" width="6" height="5" fill="#0c1c2e" rx="0.5"/>
+          <rect x="8" y="270" width="6" height="5" fill="#0c1c2e" rx="0.5"/>
+          <rect x="8" y="278" width="6" height="5" fill="#0c1c2e" rx="0.5"/>
+          <rect x="18" y="265" width="8" height="18" fill="#091625" rx="0.5"/>
+          <rect x="30" y="262" width="28" height="30" fill="#071220" rx="1"/>
+          <rect x="34" y="266" width="8" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="34" y="278" width="8" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="46" y="268" width="9" height="18" fill="#081422" rx="0.5"/>
+
+          <!-- Buildings block 7 (center mid) -->
+          <rect x="105" y="258" width="48" height="32" fill="#071220" rx="1"/>
+          <rect x="109" y="262" width="12" height="9" fill="#0c1c2e" rx="0.5"/>
+          <rect x="109" y="274" width="12" height="9" fill="#0a1828" rx="0.5"/>
+          <rect x="125" y="260" width="8" height="25" fill="#081422" rx="0.5"/>
+          <rect x="137" y="264" width="12" height="20" fill="#091625" rx="0.5"/>
+          <rect x="140" y="268" width="5" height="6" fill="#0c1c2e" rx="0.5"/>
+          <rect x="140" y="278" width="5" height="6" fill="#0c1c2e" rx="0.5"/>
+
+          <!-- Buildings block 8 (right mid) -->
+          <rect x="268" y="255" width="32" height="40" fill="#081422" rx="1"/>
+          <rect x="272" y="258" width="10" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="272" y="270" width="10" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="272" y="282" width="10" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="286" y="260" width="10" height="28" fill="#071220" rx="0.5"/>
+          <rect x="305" y="258" width="25" height="35" fill="#091625" rx="1"/>
+          <rect x="308" y="262" width="8" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="308" y="274" width="8" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="308" y="286" width="8" height="8" fill="#0c1c2e" rx="0.5"/>
+
+          <!-- Buildings block 9 (left lower) -->
+          <rect x="5" y="375" width="20" height="38" fill="#071220" rx="1"/>
+          <rect x="8" y="378" width="7" height="7" fill="#0c1c2e" rx="0.5"/>
+          <rect x="8" y="388" width="7" height="7" fill="#0c1c2e" rx="0.5"/>
+          <rect x="8" y="398" width="7" height="7" fill="#0c1c2e" rx="0.5"/>
+          <rect x="28" y="380" width="30" height="28" fill="#081422" rx="1"/>
+          <rect x="32" y="384" width="8" height="7" fill="#0c1c2e" rx="0.5"/>
+          <rect x="32" y="395" width="8" height="7" fill="#0a1828" rx="0.5"/>
+          <rect x="44" y="384" width="10" height="18" fill="#091625" rx="0.5"/>
+
+          <!-- Buildings block 10 (center lower) -->
+          <rect x="112" y="375" width="50" height="35" fill="#071220" rx="1"/>
+          <rect x="116" y="379" width="14" height="9" fill="#0c1c2e" rx="0.5"/>
+          <rect x="116" y="392" width="14" height="9" fill="#0a1828" rx="0.5"/>
+          <rect x="134" y="378" width="10" height="28" fill="#081422" rx="0.5"/>
+          <rect x="148" y="380" width="10" height="22" fill="#091625" rx="0.5"/>
+
+          <!-- Buildings block 11 (right lower) -->
+          <rect x="272" y="372" width="28" height="42" fill="#081422" rx="1"/>
+          <rect x="276" y="375" width="8" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="276" y="387" width="8" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="276" y="399" width="8" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="288" y="378" width="8" height="28" fill="#071220" rx="0.5"/>
+          <rect x="305" y="378" width="22" height="30" fill="#091625" rx="1"/>
+          <rect x="308" y="382" width="7" height="7" fill="#0c1c2e" rx="0.5"/>
+          <rect x="308" y="393" width="7" height="7" fill="#0c1c2e" rx="0.5"/>
+
+          <!-- Buildings block 12 (left bottom) -->
+          <rect x="5" y="498" width="24" height="36" fill="#071220" rx="1"/>
+          <rect x="8" y="502" width="8" height="7" fill="#0c1c2e" rx="0.5"/>
+          <rect x="8" y="513" width="8" height="7" fill="#0c1c2e" rx="0.5"/>
+          <rect x="8" y="524" width="8" height="7" fill="#0c1c2e" rx="0.5"/>
+          <rect x="32" y="498" width="32" height="28" fill="#081422" rx="1"/>
+          <rect x="36" y="502" width="9" height="7" fill="#0c1c2e" rx="0.5"/>
+          <rect x="36" y="513" width="9" height="7" fill="#0a1828" rx="0.5"/>
+          <rect x="49" y="502" width="10" height="18" fill="#091625" rx="0.5"/>
+
+          <!-- Buildings block 13 (center bottom) -->
+          <rect x="118" y="495" width="45" height="38" fill="#071220" rx="1"/>
+          <rect x="122" y="500" width="12" height="9" fill="#0c1c2e" rx="0.5"/>
+          <rect x="122" y="513" width="12" height="9" fill="#0a1828" rx="0.5"/>
+          <rect x="138" y="498" width="9" height="30" fill="#081422" rx="0.5"/>
+          <rect x="152" y="500" width="8" height="22" fill="#091625" rx="0.5"/>
+
+          <!-- Buildings block 14 (right bottom) -->
+          <rect x="280" y="492" width="30" height="40" fill="#081422" rx="1"/>
+          <rect x="284" y="496" width="9" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="284" y="508" width="9" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="284" y="520" width="9" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="298" y="498" width="9" height="26" fill="#071220" rx="0.5"/>
+          <rect x="315" y="496" width="24" height="32" fill="#091625" rx="1"/>
+          <rect x="318" y="500" width="7" height="7" fill="#0c1c2e" rx="0.5"/>
+          <rect x="318" y="511" width="7" height="7" fill="#0c1c2e" rx="0.5"/>
+
+          <!-- Buildings block 15 (Limbo area) -->
+          <rect x="55" y="598" width="55" height="45" fill="#071220" rx="1"/>
+          <rect x="60" y="602" width="15" height="10" fill="#0c1c2e" rx="0.5"/>
+          <rect x="60" y="616" width="15" height="10" fill="#0a1828" rx="0.5"/>
+          <rect x="79" y="600" width="12" height="36" fill="#081422" rx="0.5"/>
+          <rect x="95" y="604" width="10" height="28" fill="#091625" rx="0.5"/>
+          <rect x="130" y="596" width="48" height="42" fill="#081422" rx="1"/>
+          <rect x="135" y="600" width="13" height="9" fill="#0c1c2e" rx="0.5"/>
+          <rect x="135" y="613" width="13" height="9" fill="#0c1c2e" rx="0.5"/>
+          <rect x="135" y="626" width="13" height="7" fill="#0a1828" rx="0.5"/>
+          <rect x="152" y="600" width="10" height="32" fill="#071220" rx="0.5"/>
+          <rect x="166" y="602" width="8" height="26" fill="#091625" rx="0.5"/>
+          <rect x="200" y="600" width="38" height="40" fill="#071220" rx="1"/>
+          <rect x="204" y="604" width="10" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="204" y="616" width="10" height="8" fill="#0c1c2e" rx="0.5"/>
+          <rect x="218" y="604" width="8" height="28" fill="#081422" rx="0.5"/>
+
+          <!-- Tiny accent lights (windows) -->
+          <rect x="106" y="136" width="2" height="2" fill="rgba(74,127,165,0.4)"/>
+          <rect x="112" y="140" width="2" height="2" fill="rgba(74,127,165,0.3)"/>
+          <rect x="299" y="130" width="2" height="2" fill="rgba(74,127,165,0.35)"/>
+          <rect x="305" y="138" width="2" height="2" fill="rgba(74,127,165,0.25)"/>
+          <rect x="109" y="262" width="2" height="2" fill="rgba(74,127,165,0.3)"/>
+          <rect x="117" y="270" width="2" height="2" fill="rgba(74,127,165,0.4)"/>
+          <rect x="276" y="377" width="2" height="2" fill="rgba(74,127,165,0.35)"/>
+          <rect x="284" y="387" width="2" height="2" fill="rgba(74,127,165,0.3)"/>
+          <rect x="122" y="502" width="2" height="2" fill="rgba(74,127,165,0.4)"/>
+          <rect x="60" y="604" width="2" height="2" fill="rgba(74,127,165,0.45)"/>
+          <rect x="135" y="602" width="2" height="2" fill="rgba(74,127,165,0.3)"/>
+          <rect x="204" y="606" width="2" height="2" fill="rgba(74,127,165,0.35)"/>
+        </pattern>
+
+        <!-- Fog overlay for closed sectors -->
+        <filter id="fogClosed">
+          <feColorMatrix type="saturate" values="0"/>
+          <feComponentTransfer>
+            <feFuncR type="linear" slope="0.3"/>
+            <feFuncG type="linear" slope="0.3"/>
+            <feFuncB type="linear" slope="0.4"/>
+          </feComponentTransfer>
+        </filter>
+      </defs>
+
+      <!-- City base -->
+      <rect width="400" height="760" fill="url(#cityPattern)"/>
+
+      <!-- 
+        Порядок снов по секторам (перемешан):
+        sec0 = Airport Dream (7)
+        sec1 = Still Dream (1)
+        sec2 = Reverie Dream (8)
+        sec3 = Sunshine Dream (4)
+        sec4 = Action Dream (2)
+        sec5 = Reward Dream (9)
+        sec6 = Quiet Dream (0)
+        sec7 = Full Moon Dream (5)
+        sec8 = Sleep Dream (3)
+        sec9 = Africa Dream (6)
+        sec10 = Limbo (10)
+      -->
+
+      <g id="sec0" class="sector locked" onclick="enterDream(7)">
+        <polygon points="38,52 212,35 230,188 72,208 25,140" class="sec-overlay"/>
+        <text class="sector-num" x="105" y="108">08</text>
+        <text class="sector-label" x="68" y="130">Airport Dream</text>
       </g>
-      <g class="sector locked" id="sec1" onclick="enterDream(1)">
-        <polygon points="228,38 372,48 362,162 238,182 210,38"/>
-        <text class="sector-num" x="274" y="98">02</text>
-        <text class="sector-label" x="248" y="120">Still Dream</text>
+      <g id="sec1" class="sector locked" onclick="enterDream(1)">
+        <polygon points="230,35 375,44 365,165 235,185 212,35" class="sec-overlay"/>
+        <text class="sector-num" x="278" y="100">02</text>
+        <text class="sector-label" x="252" y="122">Still Dream</text>
       </g>
-      <g class="sector locked" id="sec2" onclick="enterDream(2)">
-        <polygon points="28,138 75,205 88,318 18,328 8,218"/>
-        <text class="sector-num" x="35" y="238">03</text>
-        <text class="sector-label" x="14" y="260">Action Dream</text>
+      <g id="sec2" class="sector locked" onclick="enterDream(8)">
+        <polygon points="25,140 72,208 85,322 14,334 4,215" class="sec-overlay"/>
+        <text class="sector-num" x="35" y="240">09</text>
+        <text class="sector-label" x="10" y="262">Reverie Dream</text>
       </g>
-      <g class="sector locked" id="sec3" onclick="enterDream(3)">
-        <polygon points="75,205 238,182 252,305 98,325 88,318"/>
-        <text class="sector-num" x="152" y="258">04</text>
-        <text class="sector-label" x="122" y="280">Sleep Dream</text>
+      <g id="sec3" class="sector locked" onclick="enterDream(4)">
+        <polygon points="72,208 235,185 250,308 95,328 85,322" class="sec-overlay"/>
+        <text class="sector-num" x="155" y="260">05</text>
+        <text class="sector-label" x="108" y="282">Sunshine Dream</text>
       </g>
-      <g class="sector locked" id="sec4" onclick="enterDream(4)">
-        <polygon points="238,182 362,162 378,285 262,305 252,305"/>
-        <text class="sector-num" x="298" y="238">05</text>
-        <text class="sector-label" x="252" y="260">Sunshine Dream</text>
+      <g id="sec4" class="sector locked" onclick="enterDream(2)">
+        <polygon points="235,185 365,165 382,288 258,308 250,308" class="sec-overlay"/>
+        <text class="sector-num" x="300" y="240">03</text>
+        <text class="sector-label" x="256" y="262">Action Dream</text>
       </g>
-      <g class="sector locked" id="sec5" onclick="enterDream(5)">
-        <polygon points="18,328 98,325 108,432 28,448 8,385"/>
-        <text class="sector-num" x="42" y="382">06</text>
-        <text class="sector-label" x="18" y="404">Full Moon</text>
+      <g id="sec5" class="sector locked" onclick="enterDream(9)">
+        <polygon points="14,334 95,328 105,438 24,452 4,388" class="sec-overlay"/>
+        <text class="sector-num" x="42" y="384">10</text>
+        <text class="sector-label" x="12" y="406">Reward Dream</text>
       </g>
-      <g class="sector locked" id="sec6" onclick="enterDream(6)">
-        <polygon points="98,325 252,305 265,428 112,445 108,432"/>
-        <text class="sector-num" x="172" y="378">07</text>
-        <text class="sector-label" x="140" y="400">Africa Dream</text>
+      <g id="sec6" class="sector unlocked" onclick="enterDream(0)">
+        <polygon points="95,328 258,308 268,432 108,448 105,438" class="sec-overlay"/>
+        <text class="sector-num" x="175" y="380">01</text>
+        <text class="sector-label" x="138" y="402">Quiet Dream</text>
       </g>
-      <g class="sector locked" id="sec7" onclick="enterDream(7)">
-        <polygon points="262,305 378,285 388,408 272,428 265,428"/>
-        <text class="sector-num" x="312" y="362">08</text>
-        <text class="sector-label" x="272" y="384">Airport Dream</text>
+      <g id="sec7" class="sector locked" onclick="enterDream(5)">
+        <polygon points="258,308 382,288 392,412 268,432 268,432" class="sec-overlay"/>
+        <text class="sector-num" x="315" y="364">06</text>
+        <text class="sector-label" x="268" y="386">Full Moon Dream</text>
       </g>
-      <g class="sector locked" id="sec8" onclick="enterDream(8)">
-        <polygon points="28,448 112,445 122,558 48,575 18,512"/>
-        <text class="sector-num" x="60" y="504">09</text>
-        <text class="sector-label" x="28" y="526">Reverie Dream</text>
+      <g id="sec8" class="sector locked" onclick="enterDream(3)">
+        <polygon points="24,452 108,448 118,562 44,580 14,515" class="sec-overlay"/>
+        <text class="sector-num" x="58" y="506">04</text>
+        <text class="sector-label" x="24" y="528">Sleep Dream</text>
       </g>
-      <g class="sector locked" id="sec9" onclick="enterDream(9)">
-        <polygon points="112,445 272,428 282,548 132,565 122,558"/>
-        <text class="sector-num" x="188" y="498">10</text>
-        <text class="sector-label" x="148" y="520">Reward Dream</text>
+      <g id="sec9" class="sector locked" onclick="enterDream(6)">
+        <polygon points="108,448 268,432 278,552 128,568 118,562" class="sec-overlay"/>
+        <text class="sector-num" x="188" y="500">07</text>
+        <text class="sector-label" x="142" y="522">Africa Dream</text>
       </g>
-      <g class="sector locked" id="sec10" onclick="enterDream(10)">
-        <polygon points="48,575 282,548 302,668 68,678 38,625"/>
-        <text class="sector-num" x="162" y="622">11</text>
-        <text class="sector-label" x="172" y="645">Limbo</text>
+      <g id="sec10" class="sector locked" onclick="enterDream(10)">
+        <polygon points="44,580 278,552 298,672 62,682 34,628" class="sec-overlay"/>
+        <text class="sector-num" x="162" y="625">11</text>
+        <text class="sector-label" x="175" y="648">Limbo</text>
       </g>
-      <!-- borders -->
-      <g fill="none" stroke="rgba(30,53,80,0.5)" stroke-width="0.8" pointer-events="none">
-        <polygon points="40,55 210,38 228,185 75,205 28,138"/>
-        <polygon points="228,38 372,48 362,162 238,182 210,38"/>
-        <polygon points="28,138 75,205 88,318 18,328 8,218"/>
-        <polygon points="75,205 238,182 252,305 98,325 88,318"/>
-        <polygon points="238,182 362,162 378,285 262,305 252,305"/>
-        <polygon points="18,328 98,325 108,432 28,448 8,385"/>
-        <polygon points="98,325 252,305 265,428 112,445 108,432"/>
-        <polygon points="262,305 378,285 388,408 272,428 265,428"/>
-        <polygon points="28,448 112,445 122,558 48,575 18,512"/>
-        <polygon points="112,445 272,428 282,548 132,565 122,558"/>
-        <polygon points="48,575 282,548 302,668 68,678 38,625"/>
+
+      <!-- Sector borders -->
+      <g fill="none" stroke="rgba(74,127,165,0.2)" stroke-width="0.8" pointer-events="none">
+        <polygon points="38,52 212,35 230,188 72,208 25,140"/>
+        <polygon points="230,35 375,44 365,165 235,185 212,35"/>
+        <polygon points="25,140 72,208 85,322 14,334 4,215"/>
+        <polygon points="72,208 235,185 250,308 95,328 85,322"/>
+        <polygon points="235,185 365,165 382,288 258,308 250,308"/>
+        <polygon points="14,334 95,328 105,438 24,452 4,388"/>
+        <polygon points="95,328 258,308 268,432 108,448 105,438"/>
+        <polygon points="258,308 382,288 392,412 268,432 268,432"/>
+        <polygon points="24,452 108,448 118,562 44,580 14,515"/>
+        <polygon points="108,448 268,432 278,552 128,568 118,562"/>
+        <polygon points="44,580 278,552 298,672 62,682 34,628"/>
       </g>
     </svg>
   </div>
@@ -397,10 +640,19 @@ function enterDream(i){
 }
 function exitDream(){ if(listening) stopListening(); document.getElementById('dreamScreen').classList.remove('visible'); setTimeout(()=>showMap(),200); }
 
+// Sector index for each dream (dream index -> sector element id)
+// sec0=dream7, sec1=dream1, sec2=dream8, sec3=dream4, sec4=dream2,
+// sec5=dream9, sec6=dream0, sec7=dream5, sec8=dream3, sec9=dream6, sec10=dream10
+const dreamToSector = [6, 1, 4, 8, 3, 7, 9, 0, 2, 5, 10];
+
 function updateMapUI(){
-  document.getElementById('mapCount').textContent=unlocked.filter(Boolean).length;
-  unlocked.forEach((u,i)=>{ const s=document.getElementById('sec'+i); if(s){ s.classList.toggle('unlocked',u); s.classList.toggle('locked',!u); } });
-  if(unlocked.filter(Boolean).length>1) document.getElementById('mapHint').style.opacity='0';
+  document.getElementById('mapCount').textContent = unlocked.filter(Boolean).length;
+  unlocked.forEach((u, i) => {
+    const secIdx = dreamToSector[i];
+    const s = document.getElementById('sec' + secIdx);
+    if(s){ s.classList.toggle('unlocked', u); s.classList.toggle('locked', !u); }
+  });
+  if(unlocked.filter(Boolean).length > 1) document.getElementById('mapHint').style.opacity = '0';
 }
 function updateDreamUI(i){
   const d=dreams[i];
@@ -530,19 +782,76 @@ function geoDist(la1,lo1,la2,lo2){ const R=6371,dL=(la2-la1)*Math.PI/180,dO=(lo2
 
 // ---- UNLOCKS ----
 function checkUnlocks(vol){
-  const delta=vol-prevVol;
-  if(delta>0.06&&!impulseDetected){ impulseDetected=true; flashFX(); handleImpulse(); setTimeout(()=>{impulseDetected=false;},200); }
-  if(unlocked[0]&&!unlocked[1]){ if(motionDelta<1.5){stillF++;if(stillF>300)unlockDream(1);}else stillF=0; }
-  if(unlocked[1]&&!unlocked[2]){ if(vol>0.04){loudF++;if(loudF>10){unlockDream(2);loudF=0;}}else loudF=Math.max(0,loudF-1); }
-  if(unlocked[2]&&!unlocked[3]){ if(vol<0.01&&motionDelta<1.5){sleepF++;if(sleepF>600)unlockDream(3);}else sleepF=0; }
-  if(unlocked[3]&&!unlocked[4]){ const h=new Date().getHours(); if(h>=11&&h<17) unlockDream(4); }
-  if(unlocked[4]&&!unlocked[5]){ const h=new Date().getHours(); if(h>=22||h<4) unlockDream(5); }
-  if(unlocked[5]&&!unlocked[6]&&userLat!==null&&_homeLat!==null){ if(geoDist(userLat,userLon,_homeLat,_homeLon)>50) unlockDream(6); }
-  if(unlocked[7]&&!unlocked[8]&&sessionStart){ if(Date.now()-sessionStart>300000) unlockDream(8); }
-  if(unlocked[8]&&!unlocked[9]){ if(unlocked.slice(0,9).every(Boolean)) unlockDream(9); }
-  if(unlocked[9]&&!unlocked[10]){ setTimeout(()=>unlockDream(10),2000); }
+  const delta = vol - prevVol;
+
+  // Impulse detection
+  if(delta > 0.06 && !impulseDetected){
+    impulseDetected = true; flashFX(); handleImpulse();
+    setTimeout(()=>{ impulseDetected = false; }, 200);
+  }
+
+  // 0: Quiet Dream — always open (already set)
+
+  // 1: Still Dream — телефон неподвижен 5 сек
+  if(!unlocked[1]){
+    if(motionDelta < 1.5){ stillF++; if(stillF > 300) unlockDream(1); }
+    else stillF = 0;
+  }
+
+  // 2: Action Dream — громкий звук
+  if(!unlocked[2]){
+    if(vol > 0.04){ loudF++; if(loudF > 10){ unlockDream(2); loudF = 0; } }
+    else loudF = Math.max(0, loudF - 1);
+  }
+
+  // 3: Sleep Dream — тишина + неподвижность 10 сек
+  if(!unlocked[3]){
+    if(vol < 0.01 && motionDelta < 1.5){ sleepF++; if(sleepF > 600) unlockDream(3); }
+    else sleepF = 0;
+  }
+
+  // 4: Sunshine Dream — дневное время 11-17
+  if(!unlocked[4]){
+    const h = new Date().getHours();
+    if(h >= 11 && h < 17) unlockDream(4);
+  }
+
+  // 5: Full Moon Dream — ночь после 22:00
+  if(!unlocked[5]){
+    const h = new Date().getHours();
+    if(h >= 22 || h < 4) unlockDream(5);
+  }
+
+  // 6: Africa Dream — далеко от дома >50км
+  if(!unlocked[6] && userLat !== null && _homeLat !== null){
+    if(geoDist(userLat, userLon, _homeLat, _homeLon) > 50) unlockDream(6);
+  }
+
+  // 7: Airport Dream — 3 хлопка (в handleImpulse)
+
+  // 8: Reverie Dream — 5 минут в приложении
+  if(!unlocked[8] && sessionStart){
+    if(Date.now() - sessionStart > 300000) unlockDream(8);
+  }
+
+  // 9: Reward Dream — все остальные (кроме Limbo) открыты
+  if(!unlocked[9]){
+    if(unlocked.slice(0, 9).every(Boolean)) unlockDream(9);
+  }
+
+  // 10: Limbo — после Reward Dream
+  if(unlocked[9] && !unlocked[10]){
+    setTimeout(()=> unlockDream(10), 2000);
+  }
 }
-function handleImpulse(){ if(!unlocked[6]||unlocked[7]) return; impulseCount++; if(impulseCount>=3){unlockDream(7);impulseCount=0;} clearTimeout(impulseTimer); impulseTimer=setTimeout(()=>{impulseCount=0;},3000); }
+
+function handleImpulse(){
+  if(unlocked[7]) return;
+  impulseCount++;
+  if(impulseCount >= 3){ unlockDream(7); impulseCount = 0; }
+  clearTimeout(impulseTimer);
+  impulseTimer = setTimeout(()=>{ impulseCount = 0; }, 3000);
+}
 function unlockDream(i){ if(unlocked[i]) return; unlocked[i]=true; showNotif(dreams[i].unlockDesc); updateMapUI(); }
 function flashFX(){ const f=document.getElementById('flash'); f.classList.add('active'); setTimeout(()=>f.classList.remove('active'),150); }
 function showNotif(text){ const n=document.getElementById('notif'); document.getElementById('notifText').textContent=text; n.classList.add('show'); setTimeout(()=>n.classList.remove('show'),3500); }
