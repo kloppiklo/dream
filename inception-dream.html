@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DREAM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Courier+Prime:wght@400&display=swap');
+
+  :root {
+    --bg: #080810;
+    --deep: #04040a;
+    --accent: #a89060;
+    --accent2: #6080a8;
+    --text: #c8c0b0;
+    --dim: #504840;
+    --glow: rgba(168,144,96,0.15);
+    --glow2: rgba(96,128,168,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    min-height: 100vh;
+    overflow: hidden;
+    cursor: default;
+  }
+
+  /* Animated background layers */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-circles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .circle {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(168,144,96,0.06);
+    transform: translate(-50%, -50%);
+    transition: all 0.5s ease;
+  }
+
+  .circle:nth-child(1) { width: 300px; height: 300px; top: 50%; left: 50%; }
+  .circle:nth-child(2) { width: 500px; height: 500px; top: 50%; left: 50%; border-color: rgba(96,128,168,0.05); }
+  .circle:nth-child(3) { width: 700px; height: 700px; top: 50%; left: 50%; }
+  .circle:nth-child(4) { width: 900px; height: 900px; top: 50%; left: 50%; border-color: rgba(96,128,168,0.04); }
+  .circle:nth-child(5) { width: 1100px; height: 1100px; top: 50%; left: 50%; }
+
+  .grain {
+    position: fixed;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    opacity: 0.035;
+    pointer-events: none;
+    z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    animation: grain 0.5s steps(1) infinite;
+  }
+
+  @keyframes grain {
+    0%, 100% { transform: translate(0,0); }
+    10% { transform: translate(-2%,-3%); }
+    20% { transform: translate(3%,2%); }
+    30% { transform: translate(-1%,4%); }
+    40% { transform: translate(2%,-1%); }
+    50% { transform: translate(-3%,1%); }
+    60% { transform: translate(1%,3%); }
+    70% { transform: translate(-2%,-2%); }
+    80% { transform: translate(3%,-3%); }
+    90% { transform: translate(-1%,2%); }
+  }
+
+  /* Main layout */
+  .app {
+    position: relative;
+    z-index: 2;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Header */
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 32px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  .depth-indicator {
+    font-family: 'Courier Prime', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--dim);
+    text-align: right;
+  }
+
+  .depth-indicator span {
+    color: var(--accent);
+  }
+
+  /* Center piece */
+  .center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .totem-wrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin-bottom: 48px;
+  }
+
+  .totem {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .totem:hover .totem-inner {
+    transform: scale(1.05);
+  }
+
+  .totem-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(168,144,96,0.2);
+    animation: ring-pulse 4s ease-in-out infinite;
+  }
+
+  .totem-ring:nth-child(2) {
+    inset: -15px;
+    border-color: rgba(168,144,96,0.1);
+    animation-delay: -1.3s;
+  }
+
+  .totem-ring:nth-child(3) {
+    inset: -30px;
+    border-color: rgba(168,144,96,0.05);
+    animation-delay: -2.6s;
+  }
+
+  @keyframes ring-pulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+  }
+
+  .totem-inner {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(168,144,96,0.3), rgba(168,144,96,0.05));
+    border: 1px solid rgba(168,144,96,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(168,144,96,0.1), inset 0 0 20px rgba(168,144,96,0.05);
+  }
+
+  .totem-inner svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--accent);
+    fill: none;
+    stroke-width: 1.2;
+    transition: all 0.3s ease;
+  }
+
+  /* Active / listening state */
+  .totem-inner.listening {
+    background: radial-gradient(circle at 35% 35%, rgba(168,144,96,0.5), rgba(168,144,96,0.1));
+    border-color: rgba(168,144,96,0.8);
+    box-shadow: 0 0 40px rgba(168,144,96,0.3), 0 0 80px rgba(168,144,96,0.1), inset 0 0 20px rgba(168,144,96,0.1);
+    animation: breathe 2s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 30px rgba(168,144,96,0.2), 0 0 60px rgba(168,144,96,0.08); }
+    50% { box-shadow: 0 0 60px rgba(168,144,96,0.5), 0 0 120px rgba(168,144,96,0.2); }
+  }
+
+  .level-title {
+    font-size: 11px;
+    font-family: 'Courier Prime', monospace;
+    letter-spacing: 0.5em;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    transition: color 0.5s ease;
+  }
+
+  .dream-name {
+    font-size: 52px;
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 16px;
+    transition: all 0.8s ease;
+    text-align: center;
+  }
+
+  .dream-desc {
+    font-size: 13px;
+    font-family: 'Courier Prime', monospace;
+    letter-spacing: 0.15em;
+    color: var(--dim);
+    text-align: center;
+    min-height: 20px;
+    transition: all 0.5s ease;
+    max-width: 300px;
+  }
+
+  /* Level selector */
+  .levels {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 32px 40px;
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    z-index: 10;
+  }
+
+  .level-dot {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .level-dot::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--dim);
+    transition: all 0.3s ease;
+  }
+
+  .level-dot:hover::before {
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .level-dot.active::before {
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent), 0 0 20px rgba(168,144,96,0.3);
+    width: 6px;
+    height: 6px;
+  }
+
+  .level-dot.locked::before {
+    background: #1e1e28;
+    border: 1px solid #2a2a38;
+    width: 4px;
+    height: 4px;
+  }
+
+  .level-dot.locked {
+    cursor: not-allowed;
+  }
+
+  /* VU meter / visualizer */
+  .visualizer {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+    height: 30px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .visualizer.visible {
+    opacity: 1;
+  }
+
+  .bar {
+    width: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    min-height: 2px;
+    transition: height 0.08s ease;
+    opacity: 0.6;
+  }
+
+  /* Notifications */
+  .notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) translateY(20px);
+    background: rgba(8,8,16,0.95);
+    border: 1px solid rgba(168,144,96,0.3);
+    padding: 20px 32px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.6s ease;
+    z-index: 100;
+    max-width: 280px;
+  }
+
+  .notification.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) translateY(0);
+  }
+
+  .notification-title {
+    font-size: 10px;
+    font-family: 'Courier Prime', monospace;
+    letter-spacing: 0.4em;
+    color: var(--accent);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .notification-text {
+    font-size: 18px;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--text);
+  }
+
+  /* Status line */
+  .status {
+    position: fixed;
+    top: 50%;
+    right: 40px;
+    transform: translateY(-50%);
+    font-family: 'Courier Prime', monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--dim);
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .status-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--dim), transparent);
+  }
+
+  /* Dream unlock flash */
+  .flash {
+    position: fixed;
+    inset: 0;
+    background: var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 200;
+    transition: opacity 0.1s ease;
+  }
+
+  .flash.active {
+    opacity: 0.08;
+  }
+
+  /* Sound level visual feedback on circles */
+  .circle.active { border-color: rgba(168,144,96,0.15); }
+
+  /* Deep dream mode (limbo) */
+  body.limbo {
+    --bg: #020206;
+    --accent: #8060a0;
+    --accent2: #a08060;
+    --text: #9090a8;
+    --dim: #3a3848;
+    --glow: rgba(128,96,160,0.15);
+  }
+
+  body.limbo .dream-name {
+    color: #9090a8;
+  }
+
+  /* Instruction hint */
+  .hint {
+    position: fixed;
+    top: 50%;
+    left: 40px;
+    transform: translateY(-50%);
+    font-family: 'Courier Prime', monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--dim);
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="flash" id="flash"></div>
+
+<div class="bg-circles">
+  <div class="circle" id="c1"></div>
+  <div class="circle" id="c2"></div>
+  <div class="circle" id="c3"></div>
+  <div class="circle" id="c4"></div>
+  <div class="circle" id="c5"></div>
+</div>
+
+<div class="header">
+  <div class="logo">Inception / Dream</div>
+  <div class="depth-indicator">Уровень <span id="depthNum">1</span> / 5</div>
+</div>
+
+<div class="hint" id="hint">Нажми чтобы начать</div>
+<div class="status" id="statusPanel">
+  <div class="status-line"></div>
+  <span id="statusText">ожидание</span>
+  <div class="status-line"></div>
+</div>
+
+<div class="app">
+  <div class="center">
+    <div class="totem-wrap">
+      <div class="totem" id="totem" onclick="toggleListening()">
+        <div class="totem-ring"></div>
+        <div class="totem-ring"></div>
+        <div class="totem-ring"></div>
+        <div class="totem-inner" id="totemInner">
+          <svg id="totemIcon" viewBox="0 0 24 24">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="level-title" id="levelTitle">сон первый</div>
+    <div class="dream-name" id="dreamName">Тишина</div>
+    <div class="dream-desc" id="dreamDesc">коснись чтобы погрузиться</div>
+  </div>
+</div>
+
+<div class="visualizer" id="visualizer">
+  <div class="bar" id="b0"></div>
+  <div class="bar" id="b1"></div>
+  <div class="bar" id="b2"></div>
+  <div class="bar" id="b3"></div>
+  <div class="bar" id="b4"></div>
+  <div class="bar" id="b5"></div>
+  <div class="bar" id="b6"></div>
+  <div class="bar" id="b7"></div>
+  <div class="bar" id="b8"></div>
+  <div class="bar" id="b9"></div>
+  <div class="bar" id="b10"></div>
+  <div class="bar" id="b11"></div>
+  <div class="bar" id="b12"></div>
+  <div class="bar" id="b13"></div>
+  <div class="bar" id="b14"></div>
+</div>
+
+<div class="levels" id="levelsPanel">
+  <div class="level-dot active" id="dot0" onclick="switchDream(0)" title="Тишина"></div>
+  <div class="level-dot locked" id="dot1" title="Эхо"></div>
+  <div class="level-dot locked" id="dot2" title="Глубина"></div>
+  <div class="level-dot locked" id="dot3" title="Шторм"></div>
+  <div class="level-dot locked" id="dot4" title="Лимбо"></div>
+</div>
+
+<div class="notification" id="notif">
+  <div class="notification-title" id="notifTitle">сон открыт</div>
+  <div class="notification-text" id="notifText"></div>
+</div>
+
+<script>
+// Audio context & nodes
+let audioCtx = null;
+let analyser = null;
+let source = null;
+let stream = null;
+let listening = false;
+
+// Dream levels config
+const dreams = [
+  {
+    name: 'Тишина',
+    title: 'сон первый',
+    desc: 'реальность ещё близко',
+    unlockDesc: null,
+    unlockCondition: 'always',
+    effects: { reverb: 0.1, pitch: 1.0, delay: 0.05, filter: 8000 },
+    bg: '#080810'
+  },
+  {
+    name: 'Эхо',
+    title: 'сон второй',
+    desc: 'звуки тянутся за тобой',
+    unlockDesc: 'Открыто: ты позволила звуку говорить',
+    unlockCondition: 'sound',   // triggered by loud sound
+    effects: { reverb: 0.5, pitch: 0.85, delay: 0.3, filter: 3000 },
+    bg: '#08080e'
+  },
+  {
+    name: 'Глубина',
+    title: 'сон третий',
+    desc: 'время замедляется',
+    unlockDesc: 'Открыто: тишина длиннее 5 секунд',
+    unlockCondition: 'silence',
+    effects: { reverb: 0.8, pitch: 0.6, delay: 0.6, filter: 1200 },
+    bg: '#060610'
+  },
+  {
+    name: 'Шторм',
+    title: 'сон четвёртый',
+    desc: 'хаос становится музыкой',
+    unlockDesc: 'Открыто: хлопни или топни три раза',
+    unlockCondition: 'impulse3',
+    effects: { reverb: 1.0, pitch: 0.4, delay: 0.9, filter: 600 },
+    bg: '#05050e'
+  },
+  {
+    name: 'Лимбо',
+    title: 'глубочайший уровень',
+    desc: 'возврата нет',
+    unlockDesc: 'Лимбо открыто',
+    unlockCondition: 'limbo',
+    effects: { reverb: 1.0, pitch: 0.25, delay: 1.4, filter: 300 },
+    bg: '#020206'
+  }
+];
+
+let currentDream = 0;
+let unlockedDreams = [true, false, false, false, false];
+let dataArray = null;
+
+// State for unlock conditions
+let silenceTimer = null;
+let silenceStart = null;
+let impulseCount = 0;
+let impulseTimer = null;
+let lastImpulseTime = 0;
+let prevVolume = 0;
+
+// Audio processing nodes
+let reverbNode = null;
+let delayNode = null;
+let gainNode = null;
+let filterNode = null;
+let pitchProcessor = null;
+let outputGain = null;
+
+// Ambient music nodes
+let musicNodes = [];
+let musicGain = null;
+
+const musicConfigs = [
+  { base: 55,   chord: [55, 82.4, 110],    drone: 27.5, boom: 0,    vol: 0.06 },
+  { base: 46.2, chord: [46.2, 69.3, 92.5], drone: 23.1, boom: 8000, vol: 0.10 },
+  { base: 36.7, chord: [36.7, 55, 73.4],   drone: 18.3, boom: 6000, vol: 0.13 },
+  { base: 29.1, chord: [29.1, 43.6, 58.3], drone: 14.5, boom: 4000, vol: 0.16 },
+  { base: 20,   chord: [20, 30, 40],        drone: 10,   boom: 2000, vol: 0.18 },
+];
+
+function startAmbientMusic(dreamIndex) {
+  stopAmbientMusic();
+  const cfg = musicConfigs[dreamIndex];
+  const ctx = audioCtx;
+
+  musicGain = ctx.createGain();
+  musicGain.gain.setValueAtTime(0, ctx.currentTime);
+  musicGain.gain.linearRampToValueAtTime(cfg.vol, ctx.currentTime + 3);
+
+  const musicReverb = ctx.createConvolver();
+  musicReverb.buffer = createReverbBuffer(ctx, 8, 1.5);
+
+  const musicFilter = ctx.createBiquadFilter();
+  musicFilter.type = 'lowpass';
+  musicFilter.frequency.value = 800;
+
+  musicGain.connect(musicFilter);
+  musicFilter.connect(musicReverb);
+  musicReverb.connect(ctx.destination);
+
+  // Deep drone
+  const drone = ctx.createOscillator();
+  drone.type = 'sine';
+  drone.frequency.value = cfg.drone;
+  const droneGain = ctx.createGain();
+  droneGain.gain.value = 0.5;
+  drone.connect(droneGain);
+  droneGain.connect(musicGain);
+  drone.start();
+  musicNodes.push(drone);
+
+  const droneLFO = ctx.createOscillator();
+  droneLFO.frequency.value = 0.05;
+  const droneLFOGain = ctx.createGain();
+  droneLFOGain.gain.value = cfg.drone * 0.02;
+  droneLFO.connect(droneLFOGain);
+  droneLFOGain.connect(drone.frequency);
+  droneLFO.start();
+  musicNodes.push(droneLFO);
+
+  // Chord tones
+  cfg.chord.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    osc.type = i === 0 ? 'sine' : 'triangle';
+    osc.frequency.value = freq;
+    const oscGain = ctx.createGain();
+    oscGain.gain.value = 0.15 / (i + 1);
+
+    const vib = ctx.createOscillator();
+    vib.frequency.value = 0.03 + i * 0.02;
+    const vibGain = ctx.createGain();
+    vibGain.gain.value = freq * 0.003;
+    vib.connect(vibGain);
+    vibGain.connect(osc.frequency);
+    vib.start();
+    musicNodes.push(vib);
+
+    osc.connect(oscGain);
+    oscGain.connect(musicGain);
+    osc.start();
+    musicNodes.push(osc);
+  });
+
+  // BRAAAM swells for deeper levels
+  if (cfg.boom > 0) {
+    function doBraaam() {
+      if (!listening || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(cfg.base * 0.5, now);
+      osc.frequency.linearRampToValueAtTime(cfg.base * 0.52, now + 3);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.08, now + 1.5);
+      g.gain.linearRampToValueAtTime(0, now + 4);
+      const bFilter = audioCtx.createBiquadFilter();
+      bFilter.type = 'bandpass';
+      bFilter.frequency.value = cfg.base * 2;
+      bFilter.Q.value = 0.8;
+      osc.connect(g);
+      g.connect(bFilter);
+      bFilter.connect(musicGain);
+      osc.start(now);
+      osc.stop(now + 5);
+      setTimeout(doBraaam, cfg.boom);
+    }
+    setTimeout(doBraaam, 5000);
+  }
+
+  musicNodes.push(musicGain);
+}
+
+function stopAmbientMusic() {
+  musicNodes.forEach(n => {
+    try { n.stop(); } catch(e) {}
+    try { n.disconnect(); } catch(e) {}
+  });
+  musicNodes = [];
+  musicGain = null;
+}
+
+// Reverb IR generation
+function createReverbBuffer(ctx, duration, decay) {
+  const sampleRate = ctx.sampleRate;
+  const length = sampleRate * duration;
+  const impulse = ctx.createBuffer(2, length, sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const data = impulse.getChannelData(c);
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+    }
+  }
+  return impulse;
+}
+
+async function toggleListening() {
+  if (!listening) {
+    await startListening();
+  } else {
+    stopListening();
+  }
+}
+
+async function startListening() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.8;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    source = audioCtx.createMediaStreamSource(stream);
+
+    // Build effects chain
+    setupEffectsChain();
+
+    listening = true;
+    document.getElementById('totemInner').classList.add('listening');
+    document.getElementById('visualizer').classList.add('visible');
+    document.getElementById('hint').style.opacity = '0';
+    updateDreamUI(currentDream);
+    setStatus('слушаю');
+
+    startAmbientMusic(currentDream);
+    requestAnimationFrame(tick);
+  } catch(e) {
+    document.getElementById('dreamDesc').textContent = 'доступ к микрофону запрещён';
+  }
+}
+
+function setupEffectsChain() {
+  const cfg = dreams[currentDream].effects;
+
+  // Cleanup
+  if (reverbNode) try { reverbNode.disconnect(); } catch(e){}
+  if (delayNode) try { delayNode.disconnect(); } catch(e){}
+  if (gainNode) try { gainNode.disconnect(); } catch(e){}
+  if (filterNode) try { filterNode.disconnect(); } catch(e){}
+  if (outputGain) try { outputGain.disconnect(); } catch(e){}
+
+  // Low-pass filter
+  filterNode = audioCtx.createBiquadFilter();
+  filterNode.type = 'lowpass';
+  filterNode.frequency.value = cfg.filter;
+  filterNode.Q.value = 1.5;
+
+  // Delay
+  delayNode = audioCtx.createDelay(3.0);
+  delayNode.delayTime.value = cfg.delay;
+
+  const delayFeedback = audioCtx.createGain();
+  delayFeedback.gain.value = 0.45;
+
+  const delayWet = audioCtx.createGain();
+  delayWet.gain.value = 0.4;
+
+  const delayDry = audioCtx.createGain();
+  delayDry.gain.value = 0.6;
+
+  // Reverb
+  reverbNode = audioCtx.createConvolver();
+  reverbNode.buffer = createReverbBuffer(audioCtx, 3 + cfg.reverb * 5, 2 + cfg.reverb * 3);
+
+  const reverbWet = audioCtx.createGain();
+  reverbWet.gain.value = cfg.reverb * 0.6;
+
+  const reverbDry = audioCtx.createGain();
+  reverbDry.gain.value = 0.4;
+
+  // Output gain
+  outputGain = audioCtx.createGain();
+  outputGain.gain.value = 1.2;
+
+  // Wire it up
+  source.connect(analyser);
+  source.connect(filterNode);
+
+  // Dry path
+  filterNode.connect(delayDry);
+  delayDry.connect(outputGain);
+
+  // Delay path
+  filterNode.connect(delayNode);
+  delayNode.connect(delayFeedback);
+  delayFeedback.connect(delayNode);
+  delayNode.connect(delayWet);
+  delayWet.connect(outputGain);
+
+  // Reverb path
+  filterNode.connect(reverbNode);
+  reverbNode.connect(reverbWet);
+  reverbWet.connect(outputGain);
+
+  outputGain.connect(audioCtx.destination);
+}
+
+function stopListening() {
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+  if (audioCtx) {
+    audioCtx.close();
+    audioCtx = null;
+  }
+  listening = false;
+  stopAmbientMusic();
+  document.getElementById('totemInner').classList.remove('listening');
+  document.getElementById('visualizer').classList.remove('visible');
+  setStatus('ожидание');
+  document.getElementById('dreamDesc').textContent = 'коснись чтобы погрузиться';
+  document.getElementById('hint').style.opacity = '0.6';
+}
+
+function getVolume() {
+  if (!analyser || !dataArray) return 0;
+  analyser.getByteTimeDomainData(dataArray);
+  let sum = 0;
+  for (let i = 0; i < dataArray.length; i++) {
+    const v = (dataArray[i] - 128) / 128;
+    sum += v * v;
+  }
+  return Math.sqrt(sum / dataArray.length);
+}
+
+function getFreqData() {
+  if (!analyser || !dataArray) return new Uint8Array(128).fill(128);
+  const freq = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(freq);
+  return freq;
+}
+
+let frameCount = 0;
+function tick() {
+  if (!listening) return;
+  requestAnimationFrame(tick);
+  frameCount++;
+
+  const volume = getVolume();
+  const freq = getFreqData();
+
+  // Update visualizer bars
+  const bars = 15;
+  const step = Math.floor(freq.length / bars);
+  for (let i = 0; i < bars; i++) {
+    const bar = document.getElementById('b' + i);
+    if (bar) {
+      const h = Math.max(2, (freq[i * step] / 255) * 28);
+      bar.style.height = h + 'px';
+      bar.style.opacity = 0.3 + (h / 28) * 0.7;
+    }
+  }
+
+  // Animate circles based on volume
+  const scale = 1 + volume * 3;
+  document.getElementById('c1').style.transform = `translate(-50%,-50%) scale(${scale})`;
+  document.getElementById('c2').style.transform = `translate(-50%,-50%) scale(${1 + volume * 2})`;
+  document.getElementById('c3').style.transform = `translate(-50%,-50%) scale(${1 + volume * 1.5})`;
+
+  // Check unlock conditions
+  checkUnlocks(volume);
+
+  prevVolume = volume;
+}
+
+let silentFrames = 0;
+let loudFrames = 0;
+let impulseDetected = false;
+
+function checkUnlocks(volume) {
+  // Detect impulse (sharp loud sound like clap)
+  const delta = volume - prevVolume;
+  if (delta > 0.06 && !impulseDetected) {
+    impulseDetected = true;
+    handleImpulse();
+    flashEffect();
+    setTimeout(() => { impulseDetected = false; }, 200);
+  }
+
+  // Dream 1 unlock: loud sound sustained
+  if (!unlockedDreams[1]) {
+    if (volume > 0.03) {
+      loudFrames++;
+      if (loudFrames > 10) {
+        unlockDream(1);
+        loudFrames = 0;
+      }
+    } else {
+      loudFrames = Math.max(0, loudFrames - 1);
+    }
+  }
+
+  // Dream 2 unlock: silence for 5 seconds
+  if (unlockedDreams[1] && !unlockedDreams[2]) {
+    if (volume < 0.01) {
+      silentFrames++;
+      if (silentFrames > 300) { // ~5s at 60fps
+        unlockDream(2);
+        silentFrames = 0;
+      }
+    } else {
+      silentFrames = 0;
+    }
+  }
+}
+
+function handleImpulse() {
+  if (!unlockedDreams[2] || unlockedDreams[3]) return;
+  impulseCount++;
+  if (impulseCount >= 3) {
+    unlockDream(3);
+    impulseCount = 0;
+  }
+  clearTimeout(impulseTimer);
+  impulseTimer = setTimeout(() => { impulseCount = 0; }, 3000);
+}
+
+function flashEffect() {
+  const f = document.getElementById('flash');
+  f.classList.add('active');
+  setTimeout(() => f.classList.remove('active'), 150);
+}
+
+function unlockDream(index) {
+  if (unlockedDreams[index]) return;
+  unlockedDreams[index] = true;
+
+  const dot = document.getElementById('dot' + index);
+  dot.classList.remove('locked');
+
+  // Check limbo
+  if (unlockedDreams[1] && unlockedDreams[2] && unlockedDreams[3] && !unlockedDreams[4]) {
+    setTimeout(() => unlockDream(4), 2000);
+  }
+
+  showNotification(dreams[index].unlockDesc || ('Открыто: ' + dreams[index].name));
+  switchDream(index);
+}
+
+function showNotification(text) {
+  const notif = document.getElementById('notif');
+  document.getElementById('notifText').textContent = text;
+  notif.classList.add('show');
+  setTimeout(() => notif.classList.remove('show'), 3000);
+}
+
+function switchDream(index) {
+  if (!unlockedDreams[index]) return;
+  currentDream = index;
+
+  // Update dots
+  document.querySelectorAll('.level-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === index);
+  });
+
+  updateDreamUI(index);
+
+  if (listening && audioCtx) {
+    setupEffectsChain();
+    startAmbientMusic(index);
+  }
+
+  if (index === 4) {
+    document.body.classList.add('limbo');
+  } else {
+    document.body.classList.remove('limbo');
+  }
+}
+
+function updateDreamUI(index) {
+  const d = dreams[index];
+  document.getElementById('dreamName').textContent = d.name;
+  document.getElementById('levelTitle').textContent = d.title;
+  document.getElementById('dreamDesc').textContent = listening ? d.desc : 'коснись чтобы погрузиться';
+  document.getElementById('depthNum').textContent = index + 1;
+}
+
+function setStatus(text) {
+  document.getElementById('statusText').textContent = text;
+}
+</script>
+</body>
+</html>
