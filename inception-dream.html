@@ -842,7 +842,6 @@ function animateUnlock(i){
 // ============ TILE CLICK ============
 function tileClick(idx){
   if(idx===null) return;
-  playClickSound();
   const d=dreams[idx]; const u=unlocked[idx];
   document.getElementById('sheetNum').textContent=d.num;
   document.getElementById('sheetName').textContent=d.name;
@@ -1119,7 +1118,13 @@ function checkUnlocks(vol){
     } else if(motionDelta>=1.5){ stillF=0; hideProgress(); }
   }
   // Action Dream — активное движение акселерометром (трясёшь/идёшь быстро)
-  if(!unlocked[2]){ if(motionDelta>8){loudF++;if(loudF>45){unlockDream(2);loudF=0;hideProgress();}}else loudF=Math.max(0,loudF-1); }
+  if(!unlocked[2]){
+    if(motionDelta>18){
+      loudF++;
+      showProgress('action dream', Math.min(100,(loudF/300)*100));
+      if(loudF>300){unlockDream(2);loudF=0;hideProgress();}
+    } else { loudF=Math.max(0,loudF-2); if(loudF===0) hideProgress(); }
+  }
   if(!unlocked[3]){
     if(vol<0.01&&motionDelta<1.5){
       sleepF++;
